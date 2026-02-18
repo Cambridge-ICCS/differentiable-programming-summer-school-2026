@@ -10,8 +10,9 @@
 [2026 Summer School](https://iccs.cam.ac.uk/events/institute-computing-climate-science-annual-summer-school-2026)
 of the
 [Institute of Computing for Climate Science (ICCS)](https://iccs.cam.ac.uk) by
-[Joe Wallwork](https://joewallwork.com) and
-[Sam Avis](https://github.com/sjavis).*
+[Joe Wallwork](https://joewallwork.com),
+[Sam Avis](https://github.com/sjavis), and
+[Adeleke Bankole](https://github.com/AdelekeBankole)*
 
 ## Setup
 
