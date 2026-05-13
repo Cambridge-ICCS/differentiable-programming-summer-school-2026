@@ -17,3 +17,17 @@ of the
 ## Setup
 
 *[Work in progress]*
+
+### Developer setup
+
+To install developer dependencies, activate a Python virtual environment and run
+```sh
+pip install .[dev]
+```
+This will install `pre-commit`, amongst other packages. Run
+```sh
+pre-commit install
+```
+to set up Git pre-commit hooks. Notably, the `stripout.sh` script will be added
+so that the cells in the Jupyter notebooks get cleared out before commits go
+through.
