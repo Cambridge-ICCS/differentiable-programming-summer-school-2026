@@ -26,7 +26,8 @@ A website for this workshop can be found at
 ## Learning Objectives
 
 The key learning objective from this workshop is to
-_Provide participants with \<Your workshop objective here\>_.
+_Provide participants with an understanding of the fundamentals of
+differentiable programming and experience with using related tools_.
 
 However, more specifically we will achieve this through to:
 
@@ -44,16 +45,22 @@ With regards to specific content we cover:
 
 ## Teaching Material
 
-### Slides
-The slides for this workshop can be viewed here: [\<Link to your slides\>](https://iccs.cam.ac.uk/)
+### Notebooks
+This course uses [Jupyter notebooks](https://jupyter.org/).
+The notebooks for this workshop can be viewed here:
+
+* [Session 1](session1.ipynb)
+* [Session 2](session2.ipynb)
 
 ### Exercises
-The exercises for the course can be found in the [exercises](exercises/) directory.  
-These take the form of \<partially completed jupyter notebooks/downloadable code/online tasks or games etc.\>.
+The exercises for the course can be found in the notebooks.
+These are marked by callout boxes and involve adding or modifying notebook
+cells.
 
 ### Worked Solutions
-Worked solutions for all of the exercises can be found in the [worked solutions](worked-solutions/) directory.  
-These are for recapping after the course in case you missed anything, and contain example solutions.
+Worked solutions for all of the exercises can be found in the notebooks.
+These are marked by callout boxes with hidden sections that can be revealed with
+a click.
 
 
 ## Preparation and prerequisites
@@ -151,26 +158,28 @@ through.
 
 ## License
 
-The code materials in this project are licensed under the [\<Your License Here\>](LICENSE).
+The code materials in this project are licensed under the
+[MIT License](LICENSE).
 
-Note that you may choose to license teaching materials under a separate
-[Creative Commons License](https://creativecommons.org/share-your-work/cclicenses/)
-which you can link here.
+Images in the [`images`](./images) subdirectory are separately licensed under a
+[Creative Commons License](https://creativecommons.org/share-your-work/cclicenses/).
 
 
 ## Contribution Guidelines and Support
 
 If you spot an issue with the materials please let us know by
-[opening an issue](https://github.com/Cambridge-ICCS/<your-repository>/issues)
+[opening an
+issue](https://github.com/Cambridge-ICCS/differentiable-programming-summer-school-2026/issues)
 here on GitHub clearly describing the problem.
 
 If you are able to fix an issue that you spot, or an
-[existing open issue](https://github.com/Cambridge-ICCS/<your-repository>/issues)
+[existing open issue](https://github.com/Cambridge-ICCS/differentiable-programming-summer-school-2026/issues)
 please get in touch by commenting on the issue thread.
 
 Contributions from the community are welcome.
 To contribute back to the repository please first
-[fork it](https://github.com/Cambridge-ICCS/<your-repository>/fork),
+[fork
+it](https://github.com/Cambridge-ICCS/differentiable-programming-summer-school-2026/fork),
 make the necessary changes to fix the problem, and then open a pull request back to
 this repository clearly describing the changes you have made.
 We will then preform a review and merge once ready.
