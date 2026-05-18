@@ -25,6 +25,9 @@ A website for this workshop can be found at
 
 ## Learning Objectives
 
+<!--
+TODO: Write this section.
+
 The key learning objective from this workshop is to
 _Provide participants with an understanding of the fundamentals of
 differentiable programming and experience with using related tools_.
@@ -42,6 +45,7 @@ With regards to specific content we cover:
 * for example, classification and regression with neural networks
 * for example, how to add and commit files to git
 
+-->
 
 ## Teaching Material
 
@@ -67,6 +71,9 @@ a click.
 
 ### Prerequisites
 
+<!--
+TODO: Write this section.
+
 To get the most out of the session we assume a basic understanding in a few areas and 
 for you to do some preparation in advance.
 This expected knowledge is outlined below, along with resources for reading if you
@@ -87,8 +94,12 @@ are unfamiliar with any areas.
 - If users need to clone the repository from GitHub/Lab using git also note this.
   The [ICCS Summer School](https://www.youtube.com/watch?v=ZrwzK4CnJ3Q) should provide the necessary knowledge.
 
+-->
 
 ### Preparation
+
+<!--
+TODO: Write this section.
 
 List here anything that you expect participants to have on their computer in advance of the course in order to participate.
 For example:
@@ -105,8 +116,12 @@ for setup on Windows, for example
 If you require assistance or further information with any of these please reach out to
 us before the session.
 
+-->
 
 ## Installation and setup
+
+<!--
+TODO: Write this section.
 
 Here you should include any instructions required for setup in preparation for the course.
 These may be followed during the sesison as a walkthrough, but you should provide clear
@@ -140,6 +155,7 @@ Things to include are:
 Note that you might consider providing a [Google Colab](https://colab.research.google.com/)
 or binder implementation that can be run online in case participants have issues using the
 code on their local machine. Instructions for this approach should also be provided.
+-->
 
 ### Developer setup
 
