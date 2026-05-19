@@ -1,5 +1,0 @@
-autograd
-jupyter
-matplotlib
-mpltools
-numpy
