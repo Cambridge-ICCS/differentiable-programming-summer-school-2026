@@ -105,42 +105,37 @@ out to us before the session.
 
 ## Installation and setup
 
-<!--
-TODO: Write this section.
+Obtain a local copy of the repository by cloning it from a terminal:
+```sh
+git clone https://github.com/Cambridge-ICCS/differentiable-programming-summer-school-2026.git
+```
 
-Here you should include any instructions required for setup in preparation for the course.
-These may be followed during the sesison as a walkthrough, but you should provide clear
-instructions here for participants who take longer, needs additional help, or return to work
-in their own time.
-It is possible that many participants will not have done this in advance,
-which you should be prepared for, but having these clear instructions means
-that they can be pointed at this instead of holding up the session.
+Set up a Python virtual environment for the course:
+```sh
+python3 -m venv dp-venv
+source dp-venv/bin/activate
+```
+With your virtual environment active, your terminal prompt should be preceded by
+`(dp-venv)` (or similar, depending on the name you chose).
 
-Things to include are:
+With your virtual environment active, install the Python dependencies with
+```sh
+pip install .
+```
+from the root directory of the repository. This will install the automatic
+differentiation tools [Autograd](https://github.com/HIPS/autograd) and
+[JAX](https://jax.dev) and the core Python packages [NumPy](https://numpy.org/),
+[Jupyter](https://jupyter.org/), [Matplotlib](https://matplotlib.org/), and
+[mpltools](https://tonysyu.github.io/mpltools/).
 
-- obtaining the code, for example instructions on how to clone the code locally:
-  ```
-  git clone https://github.com/Cambridge-ICCS/<your-repository>.git
-  ```
-  or fork the repository if this is required.
-- Setup of a computing environment if appropriate.
-  e.g. in Python:
-  ```
-  python3 -m venv my-workshop-venv
-  source my-workshop-venv/bin/activate
-  deactivate
-  ```
-- Installation of any dependencies
-  - Provide links and instructions
-  - If using Python, Julia, R etc. package these or use a `requirements.txt` file
-- getting started instructions
-  - instructions on how to get started with the first exercises of the workshop.
-    for example, loading the first jupyter notebook, or building andnrunning the first exercise
-
-Note that you might consider providing a [Google Colab](https://colab.research.google.com/)
-or binder implementation that can be run online in case participants have issues using the
-code on their local machine. Instructions for this approach should also be provided.
--->
+With these dependencies installed, you can launch the Jupyter environment by
+running
+```sh
+jupyter notebook
+```
+from the root directory of the repository. This will launch a browser tab, in
+which you can select the notebook you want to run (`session1.ipynb` or
+`session2.ipynb`).
 
 ### Developer setup
 
