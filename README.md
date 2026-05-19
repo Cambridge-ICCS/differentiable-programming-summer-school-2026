@@ -16,7 +16,7 @@ A website for this workshop can be found at
 ## Contents
 
 - [Learning Objectives](#learning-objectives)
-- [Teaching material](#teaching-material)
+- [Teaching materials](#teaching-materials)
 - [Preparation and prerequisites](#preparation-and-prerequisites)
 - [Installation and setup](#installation-and-setup)
 - [License information](#license)
@@ -48,7 +48,7 @@ In session 2 we will:
 * Learn about checkpointing and using AD to compute higher order derivatives.
 
 
-## Teaching Material
+## Teaching Materials
 
 ### Notebooks
 This course uses [Jupyter notebooks](https://jupyter.org/).
