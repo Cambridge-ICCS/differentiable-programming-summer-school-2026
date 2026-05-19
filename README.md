@@ -25,27 +25,28 @@ A website for this workshop can be found at
 
 ## Learning Objectives
 
-<!--
-TODO: Write this section.
-
 The key learning objective from this workshop is to
 _Provide participants with an understanding of the fundamentals of
 differentiable programming and experience with using related tools_.
 
-However, more specifically we will achieve this through to:
+More specifically, in session 1 we will:
 
-* add more detailed objectives here,
-* list any specific tools and techniques to be used,
-* add any other sub-skills that will be covered,
-* state what the outcome of the exercises/lecture will be.
+* Get a brief history of automatic differentiation.
+* Learn about the *operator overloading* approach.
+* Learn about *forward mode* and *reverse mode* applied to scalar-valued functions.
+* Try out the *Autograd* AD tool applied to some test problems.
+* Verify the derivatives produced by Autograd both manually and using the
+  *Taylor test*.
 
-With regards to specific content we cover:
+In session 2 we will:
 
-* optionally, consider adding specific takeaway skills here
-* for example, classification and regression with neural networks
-* for example, how to add and commit files to git
+* Learn about forward and reverse modes applied to functions of several
+  variables.
+* Calculate higher order derivatives using Autograd.
+* Try out the JAX differentiable programming framework and see showcases of more
+  advanced AD usage.
+* Learn about checkpointing and using AD to compute higher order derivatives.
 
--->
 
 ## Teaching Material
 
