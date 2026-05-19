@@ -72,30 +72,20 @@ a click.
 
 ### Prerequisites
 
-<!--
-TODO: Write this section.
+To get the most out of the session we assume a basic understanding in a few
+areas and for you to do some preparation in advance. This expected knowledge is
+outlined below.
 
-To get the most out of the session we assume a basic understanding in a few areas and 
-for you to do some preparation in advance.
-This expected knowledge is outlined below, along with resources for reading if you
-are unfamiliar with any areas.
-
-- List here any key skills or knowledge that will be assumed of a user for the course,
-    - for example, basic calculus (integration and differentiation of a function) and matrix algebra
-- Provide resources where appropriate,
-    - for example, Basic Neural Networks - we recommend the
-      [video series by 3Blue1Brown](https://www.3blue1brown.com/topics/neural-networks), at least chapters 1-3.
-- Also include any programming expectations
-    - for example, the course will be taught in Python using [`numpy`](https://numpy.org/)
-      and [`pandas`](https://pandas.pydata.org/docs/getting_started/index.html).
-        - We assume users are familiar with the basics of Python. This includes:
-            - Basic mathematical operations
-            - Writing and running scripts/programs
-            - Writing and using functions
-- If users need to clone the repository from GitHub/Lab using git also note this.
-  The [ICCS Summer School](https://www.youtube.com/watch?v=ZrwzK4CnJ3Q) should provide the necessary knowledge.
-
--->
+* Undergraduate level knowledge of linear algebra and calculus.
+* We assume attendees are familiar with the basics of Python. This includes:
+    * Basic mathematical operations
+    * Writing and using functions
+    * Working with Jupyter notebooks
+* A GitHub account for cloning the repository
+* A Git installation
+  * See the
+    [ICCS Summer School Git course](https://www.youtube.com/watch?v=ZrwzK4CnJ3Q)
+    for background on Git.
 
 ### Preparation
 
