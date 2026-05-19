@@ -5,7 +5,7 @@
 This repository contains documentation, resources, and code for the
 `Introduction to differentiable programming` session designed and delivered by
 [Joe Wallwork](https://joewallwork.com), [Sam Avis](https://github.com/sjavis),
-and [Adeleke Bankole](https://github.com/AdelekeBankole) of
+and [Adeleke Bankole](https://adelekebankole.github.io/) of
 [ICCS](https://github.com/Cambridge-ICCS).
 All materials, including slides and videos, are available such that individuals can cover the
 course in their own time.
