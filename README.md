@@ -81,33 +81,27 @@ outlined below.
     * Basic mathematical operations
     * Writing and using functions
     * Working with Jupyter notebooks
-* A GitHub account for cloning the repository
-* A Git installation
+* Basic knowledge of Git
   * See the
     [ICCS Summer School Git course](https://www.youtube.com/watch?v=ZrwzK4CnJ3Q)
-    for background on Git.
+    for background.
 
 ### Preparation
 
-<!--
-TODO: Write this section.
+* A text editor, e.g. Vim/[NeoVim](https://neovim.io/),
+  [gedit](https://gedit.en.softonic.com/),
+  [VSCode](https://code.visualstudio.com/),
+  [sublimetext](https://www.sublimetext.com/) etc. to open and edit code files.
+* A terminal emulator, e.g.
+  [GNOME Terminal](https://help.gnome.org/users/gnome-terminal/stable/),
+  [wezterm](https://wezfurlong.org/wezterm/index.html),
+  [Windows Terminal (windows only)](https://learn.microsoft.com/en-us/windows/terminal/),
+  [iTerm (Mac only)](https://iterm2.com/)
+* A Python 3 installation
+* A GitHub account for cloning the repository
 
-List here anything that you expect participants to have on their computer in advance of the course in order to participate.
-For example:
-
-- A text editor - e.g. vim/[neovim](https://neovim.io/), [gedit](https://gedit.en.softonic.com/), [vscode](https://code.visualstudio.com/), [sublimetext](https://www.sublimetext.com/) etc. to open and edit code files
-- A terminal emulator - e.g. [GNOME Terminal](https://help.gnome.org/users/gnome-terminal/stable/), [wezterm](https://wezfurlong.org/wezterm/index.html), [Windows Terminal (windows only)](https://learn.microsoft.com/en-us/windows/terminal/), [iTerm (mac only)](https://iterm2.com/)
-- A Python 3 installation
-
-Remember that participants will have a mix of Unix and Windows systems, and these should be covered
-to ensure smooth delivery. Whilst Unix may be a presumed first choice, provide links to information
-for setup on Windows, for example
-[Windows' getting-started with python information](https://learn.microsoft.com/en-us/windows/python/beginners).
-
-If you require assistance or further information with any of these please reach out to
-us before the session.
-
--->
+If you require assistance or further information with any of these please reach
+out to us before the session.
 
 ## Installation and setup
 
