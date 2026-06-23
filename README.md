@@ -88,6 +88,16 @@ outlined below.
 
 ### Preparation
 
+There are two ways to interact with this course:
+
+1. Using GitHub Codespaces
+2. On your local machine
+
+If you are using GitHub codespaces then the only tooling requirement is for you
+to have a GitHub account.
+
+If you want to work through the course locally then you will need the following:
+
 * A text editor, e.g. Vim/[NeoVim](https://neovim.io/),
   [gedit](https://gedit.en.softonic.com/),
   [VSCode](https://code.visualstudio.com/),
@@ -105,10 +115,19 @@ out to us before the session.
 
 ## Installation and setup
 
-Obtain a local copy of the repository by cloning it from a terminal:
+If you are using GitHub Codespaces, navigate to the
+[course repository](https://github.com/Cambridge-ICCS/differentiable-programming-summer-school-2026)
+in a web browser, click the green `Code` button, then the `Codespaces` tab, and
+finally `Create a codespace on main`. After a few minutes, this will launch an
+interactive VSCode session in your web browser.
+
+If you are working through the tutorial locally, obtain a local copy of the
+repository by cloning it from a terminal:
 ```sh
 git clone https://github.com/Cambridge-ICCS/differentiable-programming-summer-school-2026.git
 ```
+
+The remainder of the setup is the same for each approach.
 
 Set up a Python virtual environment for the course:
 ```sh
