@@ -88,6 +88,16 @@ outlined below.
 
 ### Preparation
 
+There are two ways to interact with this course:
+
+1. Using GitHub Codespaces
+2. On your local machine
+
+If you are using GitHub codespaces then the only tooling requirement is for you
+to have a GitHub account.
+
+If you want to work through the course locally then you will need the following:
+
 * A text editor, e.g. Vim/[NeoVim](https://neovim.io/),
   [gedit](https://gedit.en.softonic.com/),
   [VSCode](https://code.visualstudio.com/),
@@ -105,18 +115,35 @@ out to us before the session.
 
 ## Installation and setup
 
-Obtain a local copy of the repository by cloning it from a terminal:
+### Accessing Codespaces
+
+If you are using GitHub Codespaces, navigate to the
+[course repository](https://github.com/Cambridge-ICCS/differentiable-programming-summer-school-2026)
+in a web browser, click the green `Code` button, then the `Codespaces` tab, and
+finally `Create a codespace on main`. After a few minutes, this will launch an
+interactive VSCode session in your web browser.
+
+### Cloning the repo
+
+If you are working through the tutorial locally, obtain a local copy of the
+repository by cloning it from a terminal:
 ```sh
 git clone https://github.com/Cambridge-ICCS/differentiable-programming-summer-school-2026.git
 ```
 
-Set up a Python virtual environment for the course:
+### Setting up a Python virtual environment
+
+If you are using Codespaces then you can skip this step.
+
+Otherwise, set up a Python virtual environment for the course:
 ```sh
 python3 -m venv dp-venv
 source dp-venv/bin/activate
 ```
 With your virtual environment active, your terminal prompt should be preceded by
 `(dp-venv)` (or similar, depending on the name you chose).
+
+### Install Python dependencies
 
 With your virtual environment active, install the Python dependencies with
 ```sh
@@ -128,8 +155,19 @@ differentiation tools [Autograd](https://github.com/HIPS/autograd) and
 [Jupyter](https://jupyter.org/), [Matplotlib](https://matplotlib.org/), and
 [mpltools](https://tonysyu.github.io/mpltools/).
 
-With these dependencies installed, you can launch the Jupyter environment by
-running
+If this doesn't work for some reason, try the following instead:
+```sh
+pip install -r requirements.txt
+```
+
+### Launch the notebook
+
+If you are using Codespaces then simply find the notebook you want to run
+(`session1.ipynb` or `session2.ipynb`) in the file explorer on the
+left-hand-side and double-click it.
+
+If you are running locally, you can launch the Jupyter environment from the
+command line by running
 ```sh
 jupyter notebook
 ```
