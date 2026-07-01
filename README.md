@@ -21,6 +21,7 @@ A website for this workshop can be found at
 - [Installation and setup](#installation-and-setup)
 - [License information](#license)
 - [Contribution Guidelines and Support](#contribution-guidelines-and-support)
+- [Mini-project](mini-project)
 
 
 ## Learning Objectives
@@ -221,3 +222,12 @@ We will then preform a review and merge once ready.
 If you would like support using these materials, adapting them to your needs, or
 delivering them please get in touch either via GitHub or via
 [ICCS](https://github.com/Cambridge-ICCS).
+
+
+## Mini-project
+
+This year's summer school includes a session on Thursday afternoon in which
+attendees will form groups to work on one of several predefined mini-projects.
+This course has a mini-project associated with it, which is outlined in the
+[miniproject](miniproject) subdirectory. Code associated with the mini-project
+is provided in that subdirectory.
