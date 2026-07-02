@@ -40,12 +40,10 @@ More specifically, in session 1 we will:
 
 In session 2 we will:
 
-* Learn about forward and reverse modes applied to functions of several
+* Try out the *JAX* differentiable programming framework.
+* Learn about *forward mode* and *reverse mode* applied to functions of several
   variables.
-* Calculate higher order derivatives using Autograd.
-* Try out the JAX differentiable programming framework and see showcases of more
-  advanced AD usage.
-* Learn about checkpointing and using AD to compute higher order derivatives.
+* See showcases of more advanced AD usage including *higher order derivatives*.
 
 
 ## Teaching Materials
