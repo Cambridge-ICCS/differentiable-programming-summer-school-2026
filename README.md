@@ -44,7 +44,7 @@ In session 2 we will:
 * Try out the *JAX* differentiable programming framework.
 * Learn about *forward mode* and *reverse mode* applied to functions of several
   variables.
-* See showcases of more advanced AD usage including *higher order derivatives*.
+* Experiment with JAX in a machine learning example.
 
 
 ## Teaching Materials
