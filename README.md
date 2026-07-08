@@ -11,7 +11,7 @@ All materials, including slides and videos, are available such that individuals 
 course in their own time.
 
 A website for this workshop can be found at
-[https://cambridge-iccs.github.io/differentiable-programming-summer-school-2025/](https://cambridge-iccs.github.io/differentiable-programming-summer-school-2025/).
+[https://cambridge-iccs.github.io/differentiable-programming-summer-school-2026/](https://cambridge-iccs.github.io/differentiable-programming-summer-school-2026/).
 
 ## Contents
 
