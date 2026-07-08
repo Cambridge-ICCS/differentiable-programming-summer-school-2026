@@ -14,9 +14,9 @@ website:
       - href: index.qmd
         text: Home
       - href: session1.ipynb
-        text: "Forward AD"
+        text: "Autograd"
       - href: session2.ipynb
-        text: "Reverse AD"
+        text: "JAX"
       - href: miniproject/lorenz96.ipynb
         text: "Mini-project with Lorenz '96 model"
 
