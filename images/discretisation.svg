@@ -1,0 +1,36 @@
+<svg width="800" height="90" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Timeline -->
+  <line x1="40" y1="35" x2="320" y2="35" stroke="black" stroke-width="2"/>
+  <line x1="380" y1="35" x2="460" y2="35" stroke="black" stroke-width="2"/>
+  <line x1="520" y1="35" x2="560" y2="35" stroke="black" stroke-width="2"/>
+
+  <!-- Points -->
+  <line x1="40" x2="40" y1="25" y2="45" stroke="black" stroke-width="2"/>
+  <circle cx="120" cy="35" r="3" fill="black"/>
+  <circle cx="200" cy="35" r="3" fill="black"/>
+  <circle cx="280" cy="35" r="3" fill="black"/>
+  <circle cx="420" cy="35" r="3" fill="black"/>
+  <line x1="560" x2="560" y1="25" y2="45" stroke="black" stroke-width="2"/>
+
+  <!-- Labels above -->
+  <text x="40"  y="20" text-anchor="middle" font-size="16">u₀</text>
+  <text x="120" y="20" text-anchor="middle" font-size="16">u₁</text>
+  <text x="200" y="20" text-anchor="middle" font-size="16">u₂</text>
+  <text x="280" y="20" text-anchor="middle" font-size="16">u₃</text>
+  <text x="420" y="20" text-anchor="middle" font-size="16">uₖ</text>
+  <text x="560" y="20" text-anchor="middle" font-size="16">uₙ</text>
+
+  <!-- Ellipsis -->
+  <text x="350" y="42" text-anchor="middle" font-size="24">⋯</text>
+  <text x="490" y="42" text-anchor="middle" font-size="24">⋯</text>
+
+  <!-- Time labels below -->
+  <text x="40"  y="60" text-anchor="middle" font-size="14">t=0</text>
+  <text x="120" y="60" text-anchor="middle" font-size="14">Δt</text>
+  <text x="200" y="60" text-anchor="middle" font-size="14">2Δt</text>
+  <text x="280" y="60" text-anchor="middle" font-size="14">3Δt</text>
+  <text x="420" y="60" text-anchor="middle" font-size="14">kΔt</text>
+  <text x="560" y="60" text-anchor="middle" font-size="14">T</text>
+
+</svg>
