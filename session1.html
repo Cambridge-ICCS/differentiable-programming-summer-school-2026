@@ -4226,8 +4226,7 @@ window.Quarto = {
   <li><a href="#history-of-forward-mode" id="toc-history-of-forward-mode" class="nav-link" data-scroll-target="#history-of-forward-mode">History of forward mode</a></li>
   <li><a href="#history-of-reverse-mode" id="toc-history-of-reverse-mode" class="nav-link" data-scroll-target="#history-of-reverse-mode">History of reverse mode</a></li>
   <li><a href="#idea" id="toc-idea" class="nav-link" data-scroll-target="#idea">Idea</a></li>
-  <li><a href="#todo-taylor-test" id="toc-todo-taylor-test" class="nav-link" data-scroll-target="#todo-taylor-test">[TODO: Taylor test]</a>
-  <ul class="collapse">
+  <li><a href="#verification-the-taylor-test" id="toc-verification-the-taylor-test" class="nav-link" data-scroll-target="#verification-the-taylor-test">Verification: the Taylor test</a></li>
   <li><a href="#operator-overloading" id="toc-operator-overloading" class="nav-link" data-scroll-target="#operator-overloading">Operator overloading</a></li>
   <li><a href="#forward-mode-and-reverse-mode" id="toc-forward-mode-and-reverse-mode" class="nav-link" data-scroll-target="#forward-mode-and-reverse-mode">Forward mode and reverse mode</a></li>
   <li><a href="#example-ode-constrained-optimisation" id="toc-example-ode-constrained-optimisation" class="nav-link" data-scroll-target="#example-ode-constrained-optimisation">Example: ODE-constrained optimisation</a></li>
@@ -4240,7 +4239,6 @@ window.Quarto = {
   <li><a href="#summary-and-outlook" id="toc-summary-and-outlook" class="nav-link" data-scroll-target="#summary-and-outlook">Summary and outlook</a></li>
   <li><a href="#european-workshop-on-automatic-differentiation" id="toc-european-workshop-on-automatic-differentiation" class="nav-link" data-scroll-target="#european-workshop-on-automatic-differentiation">European workshop on Automatic differentiation</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
-  </ul></li>
   </ul>
 </nav>
 </nav>
@@ -4420,8 +4418,43 @@ window.Quarto = {
 </div>
 </section>
 </section>
-<section id="todo-taylor-test" class="level1">
-<h1>[TODO: Taylor test]</h1>
+<section id="verification-the-taylor-test" class="level2">
+<h2 class="anchored" data-anchor-id="verification-the-taylor-test">Verification: the Taylor test</h2>
+<p>Recall the Taylor expansion of a differentiable scalar function <span class="math inline">\(f:\mathbb{R}\rightarrow\mathbb{R}\)</span>: <span class="math display">\[
+    f(x+\epsilon)=f(x)+\epsilon\frac{\mathrm{d}f}{\mathrm{d}x}(x) + \frac{1}{2!}\epsilon^2\frac{\mathrm{d}^2f}{\mathrm{d}x^2} + \dots + \frac{1}{n!}\epsilon^n\frac{\mathrm{d}^nf}{\mathrm{d}x^n}(x) + \dots,
+\]</span> for some <span class="math inline">\(\epsilon\in\mathbb{R}\)</span>, i.e., <span class="math display">\[
+    f(x+\epsilon)=f(x)+\epsilon\frac{\mathrm{d}f}{\mathrm{d}x}(x) + \mathcal{O}(\epsilon^2).
+\]</span> This gives rise to the first-order forward difference approximation of the first derivative as follows: <span class="math display">\[
+    \frac{\mathrm{d}f}{\mathrm{d}x}\approx \frac{f(x+\epsilon)-f(x)}{\epsilon}.
+\]</span></p>
+<p>This is a rather crude approximation to a derivative, but it can do the job, given a sufficiently small <span class="math inline">\(\epsilon\)</span>.</p>
+<p>The idea of the Taylor test is to take smaller and smaller spacing values <span class="math inline">\(\epsilon\)</span> from a given input value and to check that the difference between the forward difference and the AD-generated result converges quadratically. That is, we verify that <span class="math display">\[
+    \|f(x+\epsilon)-f(x)-\epsilon\:\texttt{dfdx}(x)\|=\mathcal{O}(\epsilon^2),
+\]</span> where <span class="math inline">\(\texttt{dfdx}\)</span> is the AD-generated result.</p>
+<p>We return to the previous example involving the composition <span class="math inline">\(h(x)=g(f(x))\)</span> and double-check that we are happy with the output of the AD tool for this function.</p>
+<div id="75f70432-00e5-4470-adf2-73d3f753b996" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Choose arbitrary inputs for the composition</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> <span class="fl">2.5</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute the derivative using automatic differentiation</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>dhdx_auto <span class="op">=</span> grad(h)(x)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Run the Taylor test over several spacing values</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>spacings <span class="op">=</span> [<span class="fl">1.0</span>, <span class="fl">0.1</span>, <span class="fl">0.01</span>, <span class="fl">0.001</span>]</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>errors <span class="op">=</span> []</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> epsilon <span class="kw">in</span> spacings:</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Compute the discrepancy</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    errors.append(np.linalg.norm(h(x <span class="op">+</span> epsilon) <span class="op">-</span> h(x) <span class="op">-</span> epsilon <span class="op">*</span> dhdx_auto))</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the solution, demonstrating that the expected quadratic convergence is achieved</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots()</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>axes.loglog(spacings, errors, <span class="st">&quot;--x&quot;</span>)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>axes.set_xlabel(<span class="vs">r&quot;</span><span class="dv">$</span><span class="er">\</span><span class="vs">epsilon</span><span class="dv">$</span><span class="vs"> spacing&quot;</span>)</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>axes.set_ylabel(<span class="vs">r&quot;</span><span class="dv">$</span><span class="er">\</span><span class="vs">ell_2</span><span class="dv">$</span><span class="vs"> error&quot;</span>)</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>annotation.slope_marker((<span class="fl">1e-2</span>, <span class="fl">2e-4</span>), <span class="dv">2</span>, ax<span class="op">=</span>axes, invert<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>axes.grid()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
 <section id="operator-overloading" class="level2">
 <h2 class="anchored" data-anchor-id="operator-overloading">Operator overloading</h2>
 <p>What’s happening under the hood? To compute the gradient, Autograd first has to record every operation applied in the program that is relevant to the calculation. This is achieved by wrapping functions such that calling them adds them to a list of operations known as a <em>tape</em> or <em>Wengert list</em>. Abstract idea:</p>
@@ -4475,7 +4508,7 @@ window.Quarto = {
 <p>After the function is evaluated, Autograd has a graph specifying all operations that were performed on the inputs with respect to which we want to differentiate. This is the computational graph of the function evaluation. To compute the derivative, we simply apply the rules of differentiation to each node in the graph.</p>
 <p><span class="math display">\[x\quad\mapsto\quad y=x^2\quad\mapsto\quad z=\sin(y)\]</span></p>
 <p>This is why we need to import Autograd’s alias for the NumPy module: it provides a thin interface layer to support the differentiation.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> autograd.numpy <span class="im">as</span> np</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> autograd.numpy <span class="im">as</span> np</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="forward-mode-and-reverse-mode" class="level2">
 <h2 class="anchored" data-anchor-id="forward-mode-and-reverse-mode">Forward mode and reverse mode</h2>
@@ -4512,15 +4545,15 @@ window.Quarto = {
 </div>
 <p>The initial condition can be implemented as</p>
 <div id="21" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> initial_condition():</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Apply the initial condition for the ODE initial value problem</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">        du/dt = u, u(0) = 1</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: initial condition value</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    u0 <span class="op">=</span> <span class="fl">1.0</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> u0</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> initial_condition():</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Apply the initial condition for the ODE initial value problem</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co">        du/dt = u, u(0) = 1</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: initial condition value</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    u0 <span class="op">=</span> <span class="fl">1.0</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> u0</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="ode-example-explicit-vs-implicit-euler" class="level2">
@@ -4547,59 +4580,59 @@ window.Quarto = {
     u_{k}=\frac{1+\Delta t(1-\theta)}{1-\Delta t\theta}u_{k-1}.
 \]</span> We can implement this using a Python function as</p>
 <div id="24" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> theta_step(u_, dt, theta):</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Take a single iteration of a theta method for solving the ODE initial value problem</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co">        du/dt = u, u(0) = 1</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg u_: numerical solution at previous timestep</span></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg dt: timestep length</span></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg theta: parameter to use in timestepping method</span></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: numerical solution at current timestep</span></span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    u <span class="op">=</span> u_ <span class="op">*</span> (<span class="fl">1.0</span> <span class="op">+</span> dt <span class="op">*</span> (<span class="fl">1.0</span> <span class="op">-</span> theta)) <span class="op">/</span> (<span class="fl">1.0</span> <span class="op">-</span> dt <span class="op">*</span> theta)</span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> u</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> theta_step(u_, dt, theta):</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Take a single iteration of a theta method for solving the ODE initial value problem</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co">        du/dt = u, u(0) = 1</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg u_: numerical solution at previous timestep</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg dt: timestep length</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg theta: parameter to use in timestepping method</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: numerical solution at current timestep</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    u <span class="op">=</span> u_ <span class="op">*</span> (<span class="fl">1.0</span> <span class="op">+</span> dt <span class="op">*</span> (<span class="fl">1.0</span> <span class="op">-</span> theta)) <span class="op">/</span> (<span class="fl">1.0</span> <span class="op">-</span> dt <span class="op">*</span> theta)</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> u</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We can define the <span class="math inline">\(\theta\)</span>-method in terms of the <code>initial_condition</code> and <code>theta_step</code> functions as</p>
 <div id="26" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> theta_method(theta):</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Solve the ODE initial value problem</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co">        du/dt = u, u(0) = 1</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co">    using a theta timestepping method, returning the solution trajectory.</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg theta: parameter to use in timestepping method</span></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: numerical solution trajectory</span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    t <span class="op">=</span> <span class="fl">0.0</span></span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    dt <span class="op">=</span> <span class="fl">0.1</span></span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    end_time <span class="op">=</span> <span class="fl">1.0</span></span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    u0 <span class="op">=</span> initial_condition()</span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Timestepping loop</span></span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    trajectory <span class="op">=</span> [u0]</span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    u_ <span class="op">=</span> u0</span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> t <span class="op">&lt;</span> end_time <span class="op">-</span> <span class="fl">1.0e-05</span>:</span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>        u <span class="op">=</span> theta_step(u_, dt, theta)</span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>        trajectory.append(u)</span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Update variables for next loop</span></span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>        u_ <span class="op">=</span> u</span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>        t <span class="op">+=</span> dt</span>
-<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> trajectory</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> theta_method(theta):</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Solve the ODE initial value problem</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">        du/dt = u, u(0) = 1</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co">    using a theta timestepping method, returning the solution trajectory.</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg theta: parameter to use in timestepping method</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: numerical solution trajectory</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    t <span class="op">=</span> <span class="fl">0.0</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    dt <span class="op">=</span> <span class="fl">0.1</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    end_time <span class="op">=</span> <span class="fl">1.0</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    u0 <span class="op">=</span> initial_condition()</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Timestepping loop</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    trajectory <span class="op">=</span> [u0]</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    u_ <span class="op">=</span> u0</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> t <span class="op">&lt;</span> end_time <span class="op">-</span> <span class="fl">1.0e-05</span>:</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>        u <span class="op">=</span> theta_step(u_, dt, theta)</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>        trajectory.append(u)</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Update variables for next loop</span></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>        u_ <span class="op">=</span> u</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>        t <span class="op">+=</span> dt</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> trajectory</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Forward Euler corresponds to <span class="math inline">\(\theta=0\)</span> and Backward Euler corresponds to <span class="math inline">\(\theta=1\)</span> so we can apply them to the problem with</p>
 <div id="28" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>explicit <span class="op">=</span> theta_method(<span class="fl">0.0</span>)</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>implicit <span class="op">=</span> theta_method(<span class="fl">1.0</span>)</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>times <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="dv">1</span>, <span class="bu">len</span>(explicit))</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots()</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>axes.plot(times, np.exp(times), <span class="st">&quot;-&quot;</span>, color<span class="op">=</span><span class="st">&quot;k&quot;</span>, label<span class="op">=</span><span class="st">&quot;Analytical solution&quot;</span>)</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>axes.plot(times, explicit, <span class="st">&quot;--x&quot;</span>, label<span class="op">=</span><span class="st">&quot;Explicit Euler&quot;</span>)</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>axes.plot(times, implicit, <span class="st">&quot;:o&quot;</span>, label<span class="op">=</span><span class="st">&quot;Implicit Euler&quot;</span>)</span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>axes.legend()</span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>axes.grid()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>explicit <span class="op">=</span> theta_method(<span class="fl">0.0</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>implicit <span class="op">=</span> theta_method(<span class="fl">1.0</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>times <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="dv">1</span>, <span class="bu">len</span>(explicit))</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots()</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>axes.plot(times, np.exp(times), <span class="st">&quot;-&quot;</span>, color<span class="op">=</span><span class="st">&quot;k&quot;</span>, label<span class="op">=</span><span class="st">&quot;Analytical solution&quot;</span>)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>axes.plot(times, explicit, <span class="st">&quot;--x&quot;</span>, label<span class="op">=</span><span class="st">&quot;Explicit Euler&quot;</span>)</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>axes.plot(times, implicit, <span class="st">&quot;:o&quot;</span>, label<span class="op">=</span><span class="st">&quot;Implicit Euler&quot;</span>)</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>axes.legend()</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>axes.grid()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="ode-example-optimisation-with-gradient-descent" class="level2">
@@ -4615,16 +4648,16 @@ window.Quarto = {
     J(u;\theta)=(u(1)-\mathrm{e}^1)^2,
 \]</span> where here <span class="math inline">\(\mathrm{e}^1=2.7182818...\)</span> is the analytical solution at the end time <span class="math inline">\(t=1\)</span>. We can implement this as the Python function</p>
 <div id="30" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> cost_function(theta):</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Simple cost function evaluating the l2 error at the end time against the analytical solution u(t)=exp(t).</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg theta: parameter to use in timestepping method</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: l2 error at the end time against the analytical solution</span></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    u <span class="op">=</span> theta_method(theta)[<span class="op">-</span><span class="dv">1</span>]</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    e <span class="op">=</span> np.exp(<span class="fl">1.0</span>)</span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (u <span class="op">-</span> e) <span class="op">**</span> <span class="dv">2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> cost_function(theta):</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Simple cost function evaluating the l2 error at the end time against the analytical solution u(t)=exp(t).</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg theta: parameter to use in timestepping method</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: l2 error at the end time against the analytical solution</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    u <span class="op">=</span> theta_method(theta)[<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    e <span class="op">=</span> np.exp(<span class="fl">1.0</span>)</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (u <span class="op">-</span> e) <span class="op">**</span> <span class="dv">2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Let’s solve this ODE problem with one of the simplest gradient-based optimisation approaches: gradient descent. This amounts to an initial guess <span class="math inline">\(\theta_0\)</span>, followed by iterative updates <span class="math display">\[
     \theta_{k+1}=\theta_k+\alpha\:p_k,
@@ -4637,76 +4670,76 @@ window.Quarto = {
 <p>Crucially, we need to differentiate the cost function with respect to <span class="math inline">\(\theta\)</span>. Rather than trying to do this manually we can use differentiable programming with <code>autograd</code>. Replace the <code># TODO</code> comment with your implementation.</p>
 <p><b>Solution</b></p>
 <details>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>dJdtheta <span class="op">=</span> grad(cost_function)(theta)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>dJdtheta <span class="op">=</span> grad(cost_function)(theta)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <div id="32" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> gradient_descent(maxiter<span class="op">=</span><span class="dv">1000</span>, gtol<span class="op">=</span><span class="fl">1.0e-05</span>, dtol<span class="op">=</span><span class="fl">1.1</span>, alpha<span class="op">=</span><span class="fl">0.10</span>):</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Function for optimising the theta parameter for a theta timestepping method for solving the ODE</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co">        du/dt = u, u(0)=1</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co">    using gradient descent.</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg maxiter: maximum number of iterations</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg gtol: fractional tolerance for cost function convergence</span></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg dtol: fractional tolerance for cost function divergence</span></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg alpha: step length</span></span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: trajectories of theta and cost function values</span></span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Start from explicit Euler</span></span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>    theta <span class="op">=</span> <span class="fl">0.0</span></span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create lists for tracking convergence progress</span></span>
-<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>    theta_values <span class="op">=</span> []</span>
-<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>    costs <span class="op">=</span> []</span>
-<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(maxiter):</span>
-<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>        J <span class="op">=</span> cost_function(theta)</span>
-<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>        dJdtheta <span class="op">=</span> <span class="co"># </span><span class="al">TODO</span><span class="co">: Compute gradient of J with respect to theta</span></span>
-<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>        theta_values.append(theta)</span>
-<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>        costs.append(J)</span>
-<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Convergence and divergence checks</span></span>
-<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> i <span class="op">==</span> <span class="dv">0</span>:</span>
-<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>            J_init <span class="op">=</span> J</span>
-<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">abs</span>(dJdtheta <span class="op">/</span> dJdtheta_) <span class="op">&lt;</span> gtol:</span>
-<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f&quot;Converged in </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> iterations due to gradient convergence&quot;</span>)</span>
-<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> theta_values, costs</span>
-<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">abs</span>(J <span class="op">/</span> J_init) <span class="op">&gt;</span> dtol:</span>
-<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a>            <span class="cf">raise</span> <span class="pp">RuntimeError</span>(<span class="ss">f&quot;Detected divergence after </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> iterations&quot;</span>)</span>
-<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a>        dJdtheta_ <span class="op">=</span> dJdtheta</span>
-<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Take a step in the descent direction</span></span>
-<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a>        p <span class="op">=</span> <span class="op">-</span>dJdtheta</span>
-<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a>        theta <span class="op">+=</span> alpha <span class="op">*</span> p</span>
-<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a>    <span class="co"># raise RuntimeError(&quot;Reached maximum iteratons without convergence&quot;)  # </span><span class="al">FIXME</span><span class="co">: make more robust</span></span>
-<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> theta_values, costs</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> gradient_descent(maxiter<span class="op">=</span><span class="dv">1000</span>, gtol<span class="op">=</span><span class="fl">1.0e-05</span>, dtol<span class="op">=</span><span class="fl">1.1</span>, alpha<span class="op">=</span><span class="fl">0.10</span>):</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Function for optimising the theta parameter for a theta timestepping method for solving the ODE</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co">        du/dt = u, u(0)=1</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="co">    using gradient descent.</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg maxiter: maximum number of iterations</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg gtol: fractional tolerance for cost function convergence</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg dtol: fractional tolerance for cost function divergence</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg alpha: step length</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: trajectories of theta and cost function values</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Start from explicit Euler</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    theta <span class="op">=</span> <span class="fl">0.0</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create lists for tracking convergence progress</span></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>    theta_values <span class="op">=</span> []</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>    costs <span class="op">=</span> []</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(maxiter):</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>        J <span class="op">=</span> cost_function(theta)</span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>        dJdtheta <span class="op">=</span> <span class="co"># </span><span class="al">TODO</span><span class="co">: Compute gradient of J with respect to theta</span></span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>        theta_values.append(theta)</span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>        costs.append(J)</span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Convergence and divergence checks</span></span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> i <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>            J_init <span class="op">=</span> J</span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">abs</span>(dJdtheta <span class="op">/</span> dJdtheta_) <span class="op">&lt;</span> gtol:</span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f&quot;Converged in </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> iterations due to gradient convergence&quot;</span>)</span>
+<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> theta_values, costs</span>
+<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">abs</span>(J <span class="op">/</span> J_init) <span class="op">&gt;</span> dtol:</span>
+<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>            <span class="cf">raise</span> <span class="pp">RuntimeError</span>(<span class="ss">f&quot;Detected divergence after </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> iterations&quot;</span>)</span>
+<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a>        dJdtheta_ <span class="op">=</span> dJdtheta</span>
+<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-37"><a href="#cb16-37" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Take a step in the descent direction</span></span>
+<span id="cb16-38"><a href="#cb16-38" aria-hidden="true" tabindex="-1"></a>        p <span class="op">=</span> <span class="op">-</span>dJdtheta</span>
+<span id="cb16-39"><a href="#cb16-39" aria-hidden="true" tabindex="-1"></a>        theta <span class="op">+=</span> alpha <span class="op">*</span> p</span>
+<span id="cb16-40"><a href="#cb16-40" aria-hidden="true" tabindex="-1"></a>    <span class="co"># raise RuntimeError(&quot;Reached maximum iteratons without convergence&quot;)  # </span><span class="al">FIXME</span><span class="co">: make more robust</span></span>
+<span id="cb16-41"><a href="#cb16-41" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> theta_values, costs</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We can then run the gradient descent algorithm and plot it’s progress as follows.</p>
 <div id="34" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>theta_values, costs <span class="op">=</span> gradient_descent()</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>theta_opt <span class="op">=</span> theta_values[<span class="op">-</span><span class="dv">1</span>]</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(ncols<span class="op">=</span><span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">5</span>))</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].loglog(costs, <span class="st">&quot;--&quot;</span>, label<span class="op">=</span><span class="st">&quot;Cost function value&quot;</span>)</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].legend()</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].grid()</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].plot(theta_values, <span class="st">&quot;--&quot;</span>, label<span class="op">=</span><span class="vs">r&quot;</span><span class="dv">$</span><span class="ch">\t</span><span class="vs">heta</span><span class="dv">$</span><span class="vs"> value&quot;</span>)</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].legend()</span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].grid()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>theta_values, costs <span class="op">=</span> gradient_descent()</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>theta_opt <span class="op">=</span> theta_values[<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(ncols<span class="op">=</span><span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">5</span>))</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].loglog(costs, <span class="st">&quot;--&quot;</span>, label<span class="op">=</span><span class="st">&quot;Cost function value&quot;</span>)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].legend()</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].grid()</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].plot(theta_values, <span class="st">&quot;--&quot;</span>, label<span class="op">=</span><span class="vs">r&quot;</span><span class="dv">$</span><span class="ch">\t</span><span class="vs">heta</span><span class="dv">$</span><span class="vs"> value&quot;</span>)</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].legend()</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].grid()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>This looks promising! Let’s examine the solution trajectory for the optimised <span class="math inline">\(\theta\)</span> parameter to check it does a better job than Forward Euler and Backward Euler.</p>
 <div id="36" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>optimised <span class="op">=</span> theta_method(theta_opt)</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots()</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>axes.plot(times, np.exp(times), <span class="st">&quot;-&quot;</span>, color<span class="op">=</span><span class="st">&quot;k&quot;</span>, label<span class="op">=</span><span class="st">&quot;Analytical solution&quot;</span>)</span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>axes.plot(times, explicit, <span class="st">&quot;--x&quot;</span>, label<span class="op">=</span><span class="st">&quot;Explicit Euler&quot;</span>)</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>axes.plot(times, implicit, <span class="st">&quot;:o&quot;</span>, label<span class="op">=</span><span class="st">&quot;Implicit Euler&quot;</span>)</span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>axes.plot(times, optimised, <span class="st">&quot;-.^&quot;</span>, label<span class="op">=</span><span class="vs">rf&quot;Optimised </span><span class="kw">(</span><span class="dv">$</span><span class="ch">\t</span><span class="vs">heta=</span><span class="sc">{</span>theta_opt<span class="sc">:.4f}</span><span class="dv">$</span><span class="kw">)</span><span class="vs">&quot;</span>)</span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>axes.legend()</span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>axes.grid()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>optimised <span class="op">=</span> theta_method(theta_opt)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots()</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>axes.plot(times, np.exp(times), <span class="st">&quot;-&quot;</span>, color<span class="op">=</span><span class="st">&quot;k&quot;</span>, label<span class="op">=</span><span class="st">&quot;Analytical solution&quot;</span>)</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>axes.plot(times, explicit, <span class="st">&quot;--x&quot;</span>, label<span class="op">=</span><span class="st">&quot;Explicit Euler&quot;</span>)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>axes.plot(times, implicit, <span class="st">&quot;:o&quot;</span>, label<span class="op">=</span><span class="st">&quot;Implicit Euler&quot;</span>)</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>axes.plot(times, optimised, <span class="st">&quot;-.^&quot;</span>, label<span class="op">=</span><span class="vs">rf&quot;Optimised </span><span class="kw">(</span><span class="dv">$</span><span class="ch">\t</span><span class="vs">heta=</span><span class="sc">{</span>theta_opt<span class="sc">:.4f}</span><span class="dv">$</span><span class="kw">)</span><span class="vs">&quot;</span>)</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>axes.legend()</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>axes.grid()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>As we might hope, the optimised value of <span class="math inline">\(\theta\)</span> gives a much better approximation.</p>
 </section>
@@ -4716,8 +4749,8 @@ window.Quarto = {
 <p><span class="math display">\[\tanh(x)=\frac{1-e^{-2x}}{1+e^{-2x}}.\]</span></p>
 <p>This can be implemented as the Python function:</p>
 <div id="39" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> tanh(x):</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (<span class="fl">1.0</span> <span class="op">-</span> np.exp((<span class="op">-</span><span class="dv">2</span> <span class="op">*</span> x))) <span class="op">/</span> (<span class="fl">1.0</span> <span class="op">+</span> np.exp(<span class="op">-</span>(<span class="dv">2</span> <span class="op">*</span> x)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> tanh(x):</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (<span class="fl">1.0</span> <span class="op">-</span> np.exp((<span class="op">-</span><span class="dv">2</span> <span class="op">*</span> x))) <span class="op">/</span> (<span class="fl">1.0</span> <span class="op">+</span> np.exp(<span class="op">-</span>(<span class="dv">2</span> <span class="op">*</span> x)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="alert alert-block alert-info" style="background-color: rgb(195,223,220); border: 2px solid rgb(157,204,199); color: rgb(0,100,100);">
 <p><b>Exercise</b></p>
@@ -4725,36 +4758,36 @@ window.Quarto = {
 <p>Hint: To compute gradients of a scalar-valued function over a range of values, make use of <code>elementwise_grad</code> rather than <code>grad</code>. Call <code>help(grad)</code> to see its docstring.</p>
 <p><b>Solution</b></p>
 <details>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> autograd <span class="im">import</span> elementwise_grad <span class="im">as</span> egrad</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.linspace(<span class="op">-</span><span class="dv">7</span>, <span class="dv">7</span>, <span class="dv">700</span>)</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots()</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>axes.plot(x, tanh(x), label<span class="op">=</span><span class="vs">r&quot;</span><span class="dv">$</span><span class="ch">\t</span><span class="vs">anh</span><span class="kw">(</span><span class="vs">x</span><span class="kw">)</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>axes.plot(x, egrad(tanh))(x), label<span class="op">=</span><span class="vs">r&quot;</span><span class="dv">$</span><span class="ch">\t</span><span class="vs">anh&#39;</span><span class="kw">(</span><span class="vs">x</span><span class="kw">)</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>axes.plot(x, egrad(egrad(tanh))(x), label<span class="op">=</span><span class="vs">r&quot;</span><span class="dv">$</span><span class="ch">\t</span><span class="vs">anh&#39;&#39;</span><span class="kw">(</span><span class="vs">x</span><span class="kw">)</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>axes.plot(x, egrad(egrad(egrad(tanh)))(x), label<span class="op">=</span><span class="vs">r&quot;</span><span class="dv">$</span><span class="ch">\t</span><span class="vs">anh&#39;&#39;&#39;</span><span class="kw">(</span><span class="vs">x</span><span class="kw">)</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
-<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>axes.plot(x, egrad(egrad(egrad(egrad(tanh))))(x), label<span class="op">=</span><span class="vs">r&quot;</span><span class="dv">$</span><span class="ch">\t</span><span class="vs">anh&#39;&#39;&#39;&#39;</span><span class="kw">(</span><span class="vs">x</span><span class="kw">)</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
-<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>axes.set_xlabel(<span class="vs">r&quot;</span><span class="dv">$</span><span class="vs">x</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
-<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>axes.set_ylabel(<span class="vs">r&quot;</span><span class="dv">$</span><span class="vs">y</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
-<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>axes.set_xlim([<span class="op">-</span><span class="dv">7</span>, <span class="dv">7</span>])</span>
-<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>axes.grid()</span>
-<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>axes.legend()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-</div>
-<div id="41" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> autograd <span class="im">import</span> elementwise_grad <span class="im">as</span> egrad</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> autograd <span class="im">import</span> elementwise_grad <span class="im">as</span> egrad</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.linspace(<span class="op">-</span><span class="dv">7</span>, <span class="dv">7</span>, <span class="dv">700</span>)</span>
 <span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots()</span>
 <span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>axes.plot(x, tanh(x), label<span class="op">=</span><span class="vs">r&quot;</span><span class="dv">$</span><span class="ch">\t</span><span class="vs">anh</span><span class="kw">(</span><span class="vs">x</span><span class="kw">)</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: Plot first-, second-, third-, and fourth-order derivatives, too</span></span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>axes.set_xlabel(<span class="vs">r&quot;</span><span class="dv">$</span><span class="vs">x</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>axes.set_ylabel(<span class="vs">r&quot;</span><span class="dv">$</span><span class="vs">y</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
-<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>axes.set_xlim([<span class="op">-</span><span class="dv">7</span>, <span class="dv">7</span>])</span>
-<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>axes.grid()</span>
-<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>axes.legend()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>axes.plot(x, egrad(tanh))(x), label<span class="op">=</span><span class="st">&quot;First derivative&quot;</span>)</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>axes.plot(x, egrad(egrad(tanh))(x), label<span class="op">=</span><span class="st">&quot;Second derivative&quot;</span>)</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>axes.plot(x, egrad(egrad(egrad(tanh)))(x), label<span class="op">=</span><span class="st">&quot;Third derivative&quot;</span>)</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>axes.plot(x, egrad(egrad(egrad(egrad(tanh))))(x), label<span class="op">=</span><span class="st">&quot;Fourth derivative&quot;</span>)</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>axes.set_xlabel(<span class="vs">r&quot;</span><span class="dv">$</span><span class="vs">x</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>axes.set_ylabel(<span class="vs">r&quot;</span><span class="dv">$</span><span class="vs">y</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>axes.set_xlim([<span class="op">-</span><span class="dv">7</span>, <span class="dv">7</span>])</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>axes.grid()</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>axes.legend()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div id="41" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> autograd <span class="im">import</span> elementwise_grad <span class="im">as</span> egrad</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.linspace(<span class="op">-</span><span class="dv">7</span>, <span class="dv">7</span>, <span class="dv">700</span>)</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots()</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>axes.plot(x, tanh(x), label<span class="op">=</span><span class="vs">r&quot;</span><span class="dv">$</span><span class="ch">\t</span><span class="vs">anh</span><span class="kw">(</span><span class="vs">x</span><span class="kw">)</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: Plot first-, second-, third-, and fourth-order derivatives, too</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>axes.set_xlabel(<span class="vs">r&quot;</span><span class="dv">$</span><span class="vs">x</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>axes.set_ylabel(<span class="vs">r&quot;</span><span class="dv">$</span><span class="vs">y</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>axes.set_xlim([<span class="op">-</span><span class="dv">7</span>, <span class="dv">7</span>])</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>axes.grid()</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>axes.legend()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="neural-network-example" class="level2">
@@ -4772,165 +4805,165 @@ window.Quarto = {
 <p>To achieve a reasonable result, the neural network needs to be <em>trained</em>. This amounts to tuning the weights such that the output more often matches expectations. For example, an image of the number 3 should be correctly identified as such. This is achieved in much the same way as for the ODE-constrained optimisation example: we define an objective (a.k.a. loss) function and apply a gradient-based optimisation method, with the gradient computed using AD.</p>
 <p>First, download the training and testing data set, known as MNIST.</p>
 <div id="44" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> array</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> gzip</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> struct</span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> urllib.request <span class="im">import</span> urlretrieve</span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> download(url, filename):</span>
-<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
-<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a><span class="co">    Create a data directory and download a file into it from a URL.</span></span>
-<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg url: URL to download the file from</span></span>
-<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg filename: the name of the file</span></span>
-<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> os.path.exists(<span class="st">&quot;data&quot;</span>):</span>
-<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>        os.makedirs(<span class="st">&quot;data&quot;</span>)</span>
-<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>    out_file <span class="op">=</span> os.path.join(<span class="st">&quot;data&quot;</span>, filename)</span>
-<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> os.path.isfile(out_file):</span>
-<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>        urlretrieve(url, out_file)</span>
-<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mnist():</span>
-<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
-<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a><span class="co">    Download the MNIST training data as .gz files.</span></span>
-<span id="cb21-25"><a href="#cb21-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-26"><a href="#cb21-26" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: arrays of images and labels for the training and testing sets.</span></span>
-<span id="cb21-27"><a href="#cb21-27" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb21-28"><a href="#cb21-28" aria-hidden="true" tabindex="-1"></a>    base_url <span class="op">=</span> <span class="st">&quot;https://storage.googleapis.com/cvdf-datasets/mnist/&quot;</span></span>
-<span id="cb21-29"><a href="#cb21-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-30"><a href="#cb21-30" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> parse_labels(filename):</span>
-<span id="cb21-31"><a href="#cb21-31" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> gzip.<span class="bu">open</span>(filename, <span class="st">&quot;rb&quot;</span>) <span class="im">as</span> fh:</span>
-<span id="cb21-32"><a href="#cb21-32" aria-hidden="true" tabindex="-1"></a>            magic, num_data <span class="op">=</span> struct.unpack(<span class="st">&quot;&gt;II&quot;</span>, fh.read(<span class="dv">8</span>))</span>
-<span id="cb21-33"><a href="#cb21-33" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> np.array(array.array(<span class="st">&quot;B&quot;</span>, fh.read()), dtype<span class="op">=</span>np.uint8)</span>
-<span id="cb21-34"><a href="#cb21-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-35"><a href="#cb21-35" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> parse_images(filename):</span>
-<span id="cb21-36"><a href="#cb21-36" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> gzip.<span class="bu">open</span>(filename, <span class="st">&quot;rb&quot;</span>) <span class="im">as</span> fh:</span>
-<span id="cb21-37"><a href="#cb21-37" aria-hidden="true" tabindex="-1"></a>            magic, num_data, rows, cols <span class="op">=</span> struct.unpack(<span class="st">&quot;&gt;IIII&quot;</span>, fh.read(<span class="dv">16</span>))</span>
-<span id="cb21-38"><a href="#cb21-38" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> np.array(array.array(<span class="st">&quot;B&quot;</span>, fh.read()), dtype<span class="op">=</span>np.uint8).reshape(num_data, rows, cols)</span>
-<span id="cb21-39"><a href="#cb21-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-40"><a href="#cb21-40" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> filename <span class="kw">in</span> [</span>
-<span id="cb21-41"><a href="#cb21-41" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;train-images-idx3-ubyte.gz&quot;</span>,</span>
-<span id="cb21-42"><a href="#cb21-42" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;train-labels-idx1-ubyte.gz&quot;</span>,</span>
-<span id="cb21-43"><a href="#cb21-43" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;t10k-images-idx3-ubyte.gz&quot;</span>,</span>
-<span id="cb21-44"><a href="#cb21-44" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;t10k-labels-idx1-ubyte.gz&quot;</span>,</span>
-<span id="cb21-45"><a href="#cb21-45" aria-hidden="true" tabindex="-1"></a>    ]:</span>
-<span id="cb21-46"><a href="#cb21-46" aria-hidden="true" tabindex="-1"></a>        download(base_url <span class="op">+</span> filename, filename)</span>
-<span id="cb21-47"><a href="#cb21-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-48"><a href="#cb21-48" aria-hidden="true" tabindex="-1"></a>    train_images <span class="op">=</span> parse_images(<span class="st">&quot;data/train-images-idx3-ubyte.gz&quot;</span>)</span>
-<span id="cb21-49"><a href="#cb21-49" aria-hidden="true" tabindex="-1"></a>    train_labels <span class="op">=</span> parse_labels(<span class="st">&quot;data/train-labels-idx1-ubyte.gz&quot;</span>)</span>
-<span id="cb21-50"><a href="#cb21-50" aria-hidden="true" tabindex="-1"></a>    test_images <span class="op">=</span> parse_images(<span class="st">&quot;data/t10k-images-idx3-ubyte.gz&quot;</span>)</span>
-<span id="cb21-51"><a href="#cb21-51" aria-hidden="true" tabindex="-1"></a>    test_labels <span class="op">=</span> parse_labels(<span class="st">&quot;data/t10k-labels-idx1-ubyte.gz&quot;</span>)</span>
-<span id="cb21-52"><a href="#cb21-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-53"><a href="#cb21-53" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> train_images, train_labels, test_images, test_labels</span>
-<span id="cb21-54"><a href="#cb21-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-55"><a href="#cb21-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-56"><a href="#cb21-56" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> load_mnist():</span>
-<span id="cb21-57"><a href="#cb21-57" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
-<span id="cb21-58"><a href="#cb21-58" aria-hidden="true" tabindex="-1"></a><span class="co">    Normalise the MNIST data in preparation for training and testing.</span></span>
-<span id="cb21-59"><a href="#cb21-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-60"><a href="#cb21-60" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: number of images and arrays of normalised images and labels</span></span>
-<span id="cb21-61"><a href="#cb21-61" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb21-62"><a href="#cb21-62" aria-hidden="true" tabindex="-1"></a>    partial_flatten <span class="op">=</span> <span class="kw">lambda</span> x: np.reshape(x, (x.shape[<span class="dv">0</span>], np.prod(x.shape[<span class="dv">1</span>:])))</span>
-<span id="cb21-63"><a href="#cb21-63" aria-hidden="true" tabindex="-1"></a>    one_hot <span class="op">=</span> <span class="kw">lambda</span> x, k: np.array(x[:, <span class="va">None</span>] <span class="op">==</span> np.arange(k)[<span class="va">None</span>, :], dtype<span class="op">=</span><span class="bu">int</span>)</span>
-<span id="cb21-64"><a href="#cb21-64" aria-hidden="true" tabindex="-1"></a>    train_images, train_labels, test_images, test_labels <span class="op">=</span> mnist()</span>
-<span id="cb21-65"><a href="#cb21-65" aria-hidden="true" tabindex="-1"></a>    train_images <span class="op">=</span> partial_flatten(train_images) <span class="op">/</span> <span class="fl">255.0</span></span>
-<span id="cb21-66"><a href="#cb21-66" aria-hidden="true" tabindex="-1"></a>    test_images <span class="op">=</span> partial_flatten(test_images) <span class="op">/</span> <span class="fl">255.0</span></span>
-<span id="cb21-67"><a href="#cb21-67" aria-hidden="true" tabindex="-1"></a>    train_labels <span class="op">=</span> one_hot(train_labels, <span class="dv">10</span>)</span>
-<span id="cb21-68"><a href="#cb21-68" aria-hidden="true" tabindex="-1"></a>    test_labels <span class="op">=</span> one_hot(test_labels, <span class="dv">10</span>)</span>
-<span id="cb21-69"><a href="#cb21-69" aria-hidden="true" tabindex="-1"></a>    N_data <span class="op">=</span> train_images.shape[<span class="dv">0</span>]</span>
-<span id="cb21-70"><a href="#cb21-70" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> N_data, train_images, train_labels, test_images, test_labels</span>
-<span id="cb21-71"><a href="#cb21-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-72"><a href="#cb21-72" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;Loading training data...&quot;</span>)</span>
-<span id="cb21-73"><a href="#cb21-73" aria-hidden="true" tabindex="-1"></a>N, train_images, train_labels, test_images, test_labels <span class="op">=</span> load_mnist()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> array</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> gzip</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> struct</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> urllib.request <span class="im">import</span> urlretrieve</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> download(url, filename):</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a><span class="co">    Create a data directory and download a file into it from a URL.</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg url: URL to download the file from</span></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg filename: the name of the file</span></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> os.path.exists(<span class="st">&quot;data&quot;</span>):</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>        os.makedirs(<span class="st">&quot;data&quot;</span>)</span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>    out_file <span class="op">=</span> os.path.join(<span class="st">&quot;data&quot;</span>, filename)</span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> os.path.isfile(out_file):</span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>        urlretrieve(url, out_file)</span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mnist():</span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a><span class="co">    Download the MNIST training data as .gz files.</span></span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: arrays of images and labels for the training and testing sets.</span></span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>    base_url <span class="op">=</span> <span class="st">&quot;https://storage.googleapis.com/cvdf-datasets/mnist/&quot;</span></span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> parse_labels(filename):</span>
+<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> gzip.<span class="bu">open</span>(filename, <span class="st">&quot;rb&quot;</span>) <span class="im">as</span> fh:</span>
+<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a>            magic, num_data <span class="op">=</span> struct.unpack(<span class="st">&quot;&gt;II&quot;</span>, fh.read(<span class="dv">8</span>))</span>
+<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> np.array(array.array(<span class="st">&quot;B&quot;</span>, fh.read()), dtype<span class="op">=</span>np.uint8)</span>
+<span id="cb22-34"><a href="#cb22-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-35"><a href="#cb22-35" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> parse_images(filename):</span>
+<span id="cb22-36"><a href="#cb22-36" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> gzip.<span class="bu">open</span>(filename, <span class="st">&quot;rb&quot;</span>) <span class="im">as</span> fh:</span>
+<span id="cb22-37"><a href="#cb22-37" aria-hidden="true" tabindex="-1"></a>            magic, num_data, rows, cols <span class="op">=</span> struct.unpack(<span class="st">&quot;&gt;IIII&quot;</span>, fh.read(<span class="dv">16</span>))</span>
+<span id="cb22-38"><a href="#cb22-38" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> np.array(array.array(<span class="st">&quot;B&quot;</span>, fh.read()), dtype<span class="op">=</span>np.uint8).reshape(num_data, rows, cols)</span>
+<span id="cb22-39"><a href="#cb22-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-40"><a href="#cb22-40" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> filename <span class="kw">in</span> [</span>
+<span id="cb22-41"><a href="#cb22-41" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;train-images-idx3-ubyte.gz&quot;</span>,</span>
+<span id="cb22-42"><a href="#cb22-42" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;train-labels-idx1-ubyte.gz&quot;</span>,</span>
+<span id="cb22-43"><a href="#cb22-43" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;t10k-images-idx3-ubyte.gz&quot;</span>,</span>
+<span id="cb22-44"><a href="#cb22-44" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;t10k-labels-idx1-ubyte.gz&quot;</span>,</span>
+<span id="cb22-45"><a href="#cb22-45" aria-hidden="true" tabindex="-1"></a>    ]:</span>
+<span id="cb22-46"><a href="#cb22-46" aria-hidden="true" tabindex="-1"></a>        download(base_url <span class="op">+</span> filename, filename)</span>
+<span id="cb22-47"><a href="#cb22-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-48"><a href="#cb22-48" aria-hidden="true" tabindex="-1"></a>    train_images <span class="op">=</span> parse_images(<span class="st">&quot;data/train-images-idx3-ubyte.gz&quot;</span>)</span>
+<span id="cb22-49"><a href="#cb22-49" aria-hidden="true" tabindex="-1"></a>    train_labels <span class="op">=</span> parse_labels(<span class="st">&quot;data/train-labels-idx1-ubyte.gz&quot;</span>)</span>
+<span id="cb22-50"><a href="#cb22-50" aria-hidden="true" tabindex="-1"></a>    test_images <span class="op">=</span> parse_images(<span class="st">&quot;data/t10k-images-idx3-ubyte.gz&quot;</span>)</span>
+<span id="cb22-51"><a href="#cb22-51" aria-hidden="true" tabindex="-1"></a>    test_labels <span class="op">=</span> parse_labels(<span class="st">&quot;data/t10k-labels-idx1-ubyte.gz&quot;</span>)</span>
+<span id="cb22-52"><a href="#cb22-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-53"><a href="#cb22-53" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> train_images, train_labels, test_images, test_labels</span>
+<span id="cb22-54"><a href="#cb22-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-55"><a href="#cb22-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-56"><a href="#cb22-56" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> load_mnist():</span>
+<span id="cb22-57"><a href="#cb22-57" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb22-58"><a href="#cb22-58" aria-hidden="true" tabindex="-1"></a><span class="co">    Normalise the MNIST data in preparation for training and testing.</span></span>
+<span id="cb22-59"><a href="#cb22-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-60"><a href="#cb22-60" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: number of images and arrays of normalised images and labels</span></span>
+<span id="cb22-61"><a href="#cb22-61" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb22-62"><a href="#cb22-62" aria-hidden="true" tabindex="-1"></a>    partial_flatten <span class="op">=</span> <span class="kw">lambda</span> x: np.reshape(x, (x.shape[<span class="dv">0</span>], np.prod(x.shape[<span class="dv">1</span>:])))</span>
+<span id="cb22-63"><a href="#cb22-63" aria-hidden="true" tabindex="-1"></a>    one_hot <span class="op">=</span> <span class="kw">lambda</span> x, k: np.array(x[:, <span class="va">None</span>] <span class="op">==</span> np.arange(k)[<span class="va">None</span>, :], dtype<span class="op">=</span><span class="bu">int</span>)</span>
+<span id="cb22-64"><a href="#cb22-64" aria-hidden="true" tabindex="-1"></a>    train_images, train_labels, test_images, test_labels <span class="op">=</span> mnist()</span>
+<span id="cb22-65"><a href="#cb22-65" aria-hidden="true" tabindex="-1"></a>    train_images <span class="op">=</span> partial_flatten(train_images) <span class="op">/</span> <span class="fl">255.0</span></span>
+<span id="cb22-66"><a href="#cb22-66" aria-hidden="true" tabindex="-1"></a>    test_images <span class="op">=</span> partial_flatten(test_images) <span class="op">/</span> <span class="fl">255.0</span></span>
+<span id="cb22-67"><a href="#cb22-67" aria-hidden="true" tabindex="-1"></a>    train_labels <span class="op">=</span> one_hot(train_labels, <span class="dv">10</span>)</span>
+<span id="cb22-68"><a href="#cb22-68" aria-hidden="true" tabindex="-1"></a>    test_labels <span class="op">=</span> one_hot(test_labels, <span class="dv">10</span>)</span>
+<span id="cb22-69"><a href="#cb22-69" aria-hidden="true" tabindex="-1"></a>    N_data <span class="op">=</span> train_images.shape[<span class="dv">0</span>]</span>
+<span id="cb22-70"><a href="#cb22-70" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> N_data, train_images, train_labels, test_images, test_labels</span>
+<span id="cb22-71"><a href="#cb22-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-72"><a href="#cb22-72" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;Loading training data...&quot;</span>)</span>
+<span id="cb22-73"><a href="#cb22-73" aria-hidden="true" tabindex="-1"></a>N, train_images, train_labels, test_images, test_labels <span class="op">=</span> load_mnist()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Next, define the neural network architecture and the components of the objective function.</p>
 <div id="46" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> autograd.numpy.random <span class="im">as</span> npr</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> autograd.misc.flatten <span class="im">import</span> flatten</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> autograd.misc.optimizers <span class="im">import</span> adam</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> autograd.scipy.special <span class="im">import</span> logsumexp</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> init_random_params(scale, layer_sizes, rs<span class="op">=</span>npr.RandomState(<span class="dv">0</span>)):</span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a><span class="co">    Build a list of (weights, biases) tuples, one for each layer in the net.</span></span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg scale: scaling parameter</span></span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg layer_sizes: sizes of each layer in the neural network</span></span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="co">    :kwarg rs: initial random state</span></span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: array of (weights, biases) tuples representing the net</span></span>
-<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> [</span>
-<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>        (</span>
-<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>            scale <span class="op">*</span> rs.randn(m, n),  <span class="co"># weight matrix</span></span>
-<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>            scale <span class="op">*</span> rs.randn(n),     <span class="co"># bias vector</span></span>
-<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>        )  </span>
-<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> m, n <span class="kw">in</span> <span class="bu">zip</span>(layer_sizes[:<span class="op">-</span><span class="dv">1</span>], layer_sizes[<span class="dv">1</span>:])</span>
-<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>    ]</span>
-<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> neural_net_predict(params, inputs):</span>
-<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
-<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a><span class="co">    Implements a deep neural network for classification.</span></span>
-<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
-<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg params: list of (weights, bias) tuples</span></span>
-<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg inputs: (N x D) input data matrix for images</span></span>
-<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: normalized class log-probabilities&quot;&quot;&quot;</span></span>
-<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> W, b <span class="kw">in</span> params:</span>
-<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a>        outputs <span class="op">=</span> np.dot(inputs, W) <span class="op">+</span> b</span>
-<span id="cb22-34"><a href="#cb22-34" aria-hidden="true" tabindex="-1"></a>        inputs <span class="op">=</span> np.tanh(outputs)</span>
-<span id="cb22-35"><a href="#cb22-35" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> outputs <span class="op">-</span> logsumexp(outputs, axis<span class="op">=</span><span class="dv">1</span>, keepdims<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb22-36"><a href="#cb22-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-37"><a href="#cb22-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-38"><a href="#cb22-38" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> l2_norm(params):</span>
-<span id="cb22-39"><a href="#cb22-39" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
-<span id="cb22-40"><a href="#cb22-40" aria-hidden="true" tabindex="-1"></a><span class="co">    Computes l2 norm of params by flattening them into a vector.</span></span>
-<span id="cb22-41"><a href="#cb22-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-42"><a href="#cb22-42" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg params: neural network parameters</span></span>
-<span id="cb22-43"><a href="#cb22-43" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: l2 norm of the parameters</span></span>
-<span id="cb22-44"><a href="#cb22-44" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb22-45"><a href="#cb22-45" aria-hidden="true" tabindex="-1"></a>    flattened, _ <span class="op">=</span> flatten(params)</span>
-<span id="cb22-46"><a href="#cb22-46" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.dot(flattened, flattened)</span>
-<span id="cb22-47"><a href="#cb22-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-48"><a href="#cb22-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-49"><a href="#cb22-49" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> log_posterior(params, inputs, targets, L2_reg):</span>
-<span id="cb22-50"><a href="#cb22-50" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
-<span id="cb22-51"><a href="#cb22-51" aria-hidden="true" tabindex="-1"></a><span class="co">    Compute a log-posterior loss function comprised of prior and likelihood components</span></span>
-<span id="cb22-52"><a href="#cb22-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-53"><a href="#cb22-53" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg params: list of (weights, bias) tuples</span></span>
-<span id="cb22-54"><a href="#cb22-54" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg inputs: input data matrix for images</span></span>
-<span id="cb22-55"><a href="#cb22-55" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg targets: target data for labels</span></span>
-<span id="cb22-56"><a href="#cb22-56" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg L2_reg: scalar regularisation parameter</span></span>
-<span id="cb22-57"><a href="#cb22-57" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: log-posterior loss function</span></span>
-<span id="cb22-58"><a href="#cb22-58" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb22-59"><a href="#cb22-59" aria-hidden="true" tabindex="-1"></a>    log_prior <span class="op">=</span> <span class="op">-</span>L2_reg <span class="op">*</span> l2_norm(params)</span>
-<span id="cb22-60"><a href="#cb22-60" aria-hidden="true" tabindex="-1"></a>    log_lik <span class="op">=</span> np.<span class="bu">sum</span>(neural_net_predict(params, inputs) <span class="op">*</span> targets)</span>
-<span id="cb22-61"><a href="#cb22-61" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> log_prior <span class="op">+</span> log_lik</span>
-<span id="cb22-62"><a href="#cb22-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-63"><a href="#cb22-63" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-64"><a href="#cb22-64" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> accuracy(params, inputs, targets):</span>
-<span id="cb22-65"><a href="#cb22-65" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
-<span id="cb22-66"><a href="#cb22-66" aria-hidden="true" tabindex="-1"></a><span class="co">    Compute the accuracy of a set of predictions.</span></span>
-<span id="cb22-67"><a href="#cb22-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-68"><a href="#cb22-68" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg params: list of (weights, bias) tuples</span></span>
-<span id="cb22-69"><a href="#cb22-69" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg inputs: input data matrix for images</span></span>
-<span id="cb22-70"><a href="#cb22-70" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg targets: target data for labels</span></span>
-<span id="cb22-71"><a href="#cb22-71" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: mean accuracy of predictions</span></span>
-<span id="cb22-72"><a href="#cb22-72" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb22-73"><a href="#cb22-73" aria-hidden="true" tabindex="-1"></a>    target_class <span class="op">=</span> np.argmax(targets, axis<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb22-74"><a href="#cb22-74" aria-hidden="true" tabindex="-1"></a>    predicted_class <span class="op">=</span> np.argmax(neural_net_predict(params, inputs), axis<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb22-75"><a href="#cb22-75" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.mean(predicted_class <span class="op">==</span> target_class)</span>
-<span id="cb22-76"><a href="#cb22-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-77"><a href="#cb22-77" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-78"><a href="#cb22-78" aria-hidden="true" tabindex="-1"></a><span class="co"># Model parameters</span></span>
-<span id="cb22-79"><a href="#cb22-79" aria-hidden="true" tabindex="-1"></a>param_scale <span class="op">=</span> <span class="fl">0.1</span></span>
-<span id="cb22-80"><a href="#cb22-80" aria-hidden="true" tabindex="-1"></a>layer_sizes <span class="op">=</span> [<span class="dv">784</span>, <span class="dv">200</span>, <span class="dv">100</span>, <span class="dv">10</span>]</span>
-<span id="cb22-81"><a href="#cb22-81" aria-hidden="true" tabindex="-1"></a>L2_reg <span class="op">=</span> <span class="fl">1.0</span></span>
-<span id="cb22-82"><a href="#cb22-82" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-83"><a href="#cb22-83" aria-hidden="true" tabindex="-1"></a>init_params <span class="op">=</span> init_random_params(param_scale, layer_sizes)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> autograd.numpy.random <span class="im">as</span> npr</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> autograd.misc.flatten <span class="im">import</span> flatten</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> autograd.misc.optimizers <span class="im">import</span> adam</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> autograd.scipy.special <span class="im">import</span> logsumexp</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> init_random_params(scale, layer_sizes, rs<span class="op">=</span>npr.RandomState(<span class="dv">0</span>)):</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a><span class="co">    Build a list of (weights, biases) tuples, one for each layer in the net.</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg scale: scaling parameter</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg layer_sizes: sizes of each layer in the neural network</span></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a><span class="co">    :kwarg rs: initial random state</span></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: array of (weights, biases) tuples representing the net</span></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> [</span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>        (</span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>            scale <span class="op">*</span> rs.randn(m, n),  <span class="co"># weight matrix</span></span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>            scale <span class="op">*</span> rs.randn(n),     <span class="co"># bias vector</span></span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a>        )  </span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> m, n <span class="kw">in</span> <span class="bu">zip</span>(layer_sizes[:<span class="op">-</span><span class="dv">1</span>], layer_sizes[<span class="dv">1</span>:])</span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> neural_net_predict(params, inputs):</span>
+<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a><span class="co">    Implements a deep neural network for classification.</span></span>
+<span id="cb23-28"><a href="#cb23-28" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb23-29"><a href="#cb23-29" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg params: list of (weights, bias) tuples</span></span>
+<span id="cb23-30"><a href="#cb23-30" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg inputs: (N x D) input data matrix for images</span></span>
+<span id="cb23-31"><a href="#cb23-31" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: normalized class log-probabilities&quot;&quot;&quot;</span></span>
+<span id="cb23-32"><a href="#cb23-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> W, b <span class="kw">in</span> params:</span>
+<span id="cb23-33"><a href="#cb23-33" aria-hidden="true" tabindex="-1"></a>        outputs <span class="op">=</span> np.dot(inputs, W) <span class="op">+</span> b</span>
+<span id="cb23-34"><a href="#cb23-34" aria-hidden="true" tabindex="-1"></a>        inputs <span class="op">=</span> np.tanh(outputs)</span>
+<span id="cb23-35"><a href="#cb23-35" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> outputs <span class="op">-</span> logsumexp(outputs, axis<span class="op">=</span><span class="dv">1</span>, keepdims<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb23-36"><a href="#cb23-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-37"><a href="#cb23-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-38"><a href="#cb23-38" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> l2_norm(params):</span>
+<span id="cb23-39"><a href="#cb23-39" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb23-40"><a href="#cb23-40" aria-hidden="true" tabindex="-1"></a><span class="co">    Computes l2 norm of params by flattening them into a vector.</span></span>
+<span id="cb23-41"><a href="#cb23-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-42"><a href="#cb23-42" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg params: neural network parameters</span></span>
+<span id="cb23-43"><a href="#cb23-43" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: l2 norm of the parameters</span></span>
+<span id="cb23-44"><a href="#cb23-44" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb23-45"><a href="#cb23-45" aria-hidden="true" tabindex="-1"></a>    flattened, _ <span class="op">=</span> flatten(params)</span>
+<span id="cb23-46"><a href="#cb23-46" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.dot(flattened, flattened)</span>
+<span id="cb23-47"><a href="#cb23-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-48"><a href="#cb23-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-49"><a href="#cb23-49" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> log_posterior(params, inputs, targets, L2_reg):</span>
+<span id="cb23-50"><a href="#cb23-50" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb23-51"><a href="#cb23-51" aria-hidden="true" tabindex="-1"></a><span class="co">    Compute a log-posterior loss function comprised of prior and likelihood components</span></span>
+<span id="cb23-52"><a href="#cb23-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-53"><a href="#cb23-53" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg params: list of (weights, bias) tuples</span></span>
+<span id="cb23-54"><a href="#cb23-54" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg inputs: input data matrix for images</span></span>
+<span id="cb23-55"><a href="#cb23-55" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg targets: target data for labels</span></span>
+<span id="cb23-56"><a href="#cb23-56" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg L2_reg: scalar regularisation parameter</span></span>
+<span id="cb23-57"><a href="#cb23-57" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: log-posterior loss function</span></span>
+<span id="cb23-58"><a href="#cb23-58" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb23-59"><a href="#cb23-59" aria-hidden="true" tabindex="-1"></a>    log_prior <span class="op">=</span> <span class="op">-</span>L2_reg <span class="op">*</span> l2_norm(params)</span>
+<span id="cb23-60"><a href="#cb23-60" aria-hidden="true" tabindex="-1"></a>    log_lik <span class="op">=</span> np.<span class="bu">sum</span>(neural_net_predict(params, inputs) <span class="op">*</span> targets)</span>
+<span id="cb23-61"><a href="#cb23-61" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> log_prior <span class="op">+</span> log_lik</span>
+<span id="cb23-62"><a href="#cb23-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-63"><a href="#cb23-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-64"><a href="#cb23-64" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> accuracy(params, inputs, targets):</span>
+<span id="cb23-65"><a href="#cb23-65" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb23-66"><a href="#cb23-66" aria-hidden="true" tabindex="-1"></a><span class="co">    Compute the accuracy of a set of predictions.</span></span>
+<span id="cb23-67"><a href="#cb23-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-68"><a href="#cb23-68" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg params: list of (weights, bias) tuples</span></span>
+<span id="cb23-69"><a href="#cb23-69" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg inputs: input data matrix for images</span></span>
+<span id="cb23-70"><a href="#cb23-70" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg targets: target data for labels</span></span>
+<span id="cb23-71"><a href="#cb23-71" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: mean accuracy of predictions</span></span>
+<span id="cb23-72"><a href="#cb23-72" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb23-73"><a href="#cb23-73" aria-hidden="true" tabindex="-1"></a>    target_class <span class="op">=</span> np.argmax(targets, axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb23-74"><a href="#cb23-74" aria-hidden="true" tabindex="-1"></a>    predicted_class <span class="op">=</span> np.argmax(neural_net_predict(params, inputs), axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb23-75"><a href="#cb23-75" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.mean(predicted_class <span class="op">==</span> target_class)</span>
+<span id="cb23-76"><a href="#cb23-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-77"><a href="#cb23-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-78"><a href="#cb23-78" aria-hidden="true" tabindex="-1"></a><span class="co"># Model parameters</span></span>
+<span id="cb23-79"><a href="#cb23-79" aria-hidden="true" tabindex="-1"></a>param_scale <span class="op">=</span> <span class="fl">0.1</span></span>
+<span id="cb23-80"><a href="#cb23-80" aria-hidden="true" tabindex="-1"></a>layer_sizes <span class="op">=</span> [<span class="dv">784</span>, <span class="dv">200</span>, <span class="dv">100</span>, <span class="dv">10</span>]</span>
+<span id="cb23-81"><a href="#cb23-81" aria-hidden="true" tabindex="-1"></a>L2_reg <span class="op">=</span> <span class="fl">1.0</span></span>
+<span id="cb23-82"><a href="#cb23-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-83"><a href="#cb23-83" aria-hidden="true" tabindex="-1"></a>init_params <span class="op">=</span> init_random_params(param_scale, layer_sizes)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Finally, solve the optimisation problem. In this example, we use the <code>adam</code> optimisation method rather than the simple gradient descent approach because it is better suited to ‘noisy’ machine learning problems.</p>
 <div class="alert alert-block alert-info" style="background-color: rgb(195,223,220); border: 2px solid rgb(157,204,199); color: rgb(0,100,100);">
@@ -4938,89 +4971,89 @@ window.Quarto = {
 <p>You will also need to differentiate the objective function with respect to the neural network parameters. Replace the <code># TODO</code> comment with your implementation.</p>
 <p><b>Solution</b></p>
 <details>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>objective_grad <span class="op">=</span> grad(objective)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>objective_grad <span class="op">=</span> grad(objective)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <div id="48" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Training parameters</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>batch_size <span class="op">=</span> <span class="dv">256</span></span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>num_epochs <span class="op">=</span> <span class="dv">5</span></span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>step_size <span class="op">=</span> <span class="fl">0.001</span></span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>num_batches <span class="op">=</span> <span class="bu">int</span>(np.ceil(<span class="bu">len</span>(train_images) <span class="op">/</span> batch_size))</span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> batch_indices(<span class="bu">iter</span>):</span>
-<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>    idx <span class="op">=</span> <span class="bu">iter</span> <span class="op">%</span> num_batches</span>
-<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">slice</span>(idx <span class="op">*</span> batch_size, (idx <span class="op">+</span> <span class="dv">1</span>) <span class="op">*</span> batch_size)</span>
-<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Define training objective</span></span>
-<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> objective(params, <span class="bu">iter</span>):</span>
-<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>    idx <span class="op">=</span> batch_indices(<span class="bu">iter</span>)</span>
-<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">-</span>log_posterior(params, train_images[idx], train_labels[idx], L2_reg)</span>
-<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Get gradient of objective using autograd.</span></span>
-<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>objective_grad <span class="op">=</span> <span class="co"># </span><span class="al">TODO</span></span>
-<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> print_perf(params, <span class="bu">iter</span>, gradient):</span>
-<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">iter</span> <span class="op">==</span> <span class="dv">0</span>:</span>
-<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">&quot;Epoch | Train accuracy | Test accuracy&quot;</span>)</span>
-<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">iter</span> <span class="op">%</span> num_batches <span class="op">==</span> <span class="dv">0</span>:</span>
-<span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a>        train_acc <span class="op">=</span> accuracy(params, train_images, train_labels)</span>
-<span id="cb24-25"><a href="#cb24-25" aria-hidden="true" tabindex="-1"></a>        test_acc <span class="op">=</span> accuracy(params, test_images, test_labels)</span>
-<span id="cb24-26"><a href="#cb24-26" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f&quot;  </span><span class="sc">{</span><span class="bu">iter</span> <span class="op">//</span> num_batches<span class="sc">:1}</span><span class="ss">   |  </span><span class="sc">{</span>train_acc<span class="sc">:10.5f}</span><span class="ss">    |  </span><span class="sc">{</span>test_acc<span class="sc">:10.5f}</span><span class="ss">&quot;</span>)</span>
-<span id="cb24-27"><a href="#cb24-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-28"><a href="#cb24-28" aria-hidden="true" tabindex="-1"></a><span class="co"># The optimizers provided can optimize lists, tuples, or dicts of parameters.</span></span>
-<span id="cb24-29"><a href="#cb24-29" aria-hidden="true" tabindex="-1"></a>optimized_params <span class="op">=</span> adam(</span>
-<span id="cb24-30"><a href="#cb24-30" aria-hidden="true" tabindex="-1"></a>    objective_grad,</span>
-<span id="cb24-31"><a href="#cb24-31" aria-hidden="true" tabindex="-1"></a>    init_params,</span>
-<span id="cb24-32"><a href="#cb24-32" aria-hidden="true" tabindex="-1"></a>    step_size<span class="op">=</span>step_size,</span>
-<span id="cb24-33"><a href="#cb24-33" aria-hidden="true" tabindex="-1"></a>    num_iters<span class="op">=</span>num_epochs <span class="op">*</span> num_batches,</span>
-<span id="cb24-34"><a href="#cb24-34" aria-hidden="true" tabindex="-1"></a>    callback<span class="op">=</span>print_perf,</span>
-<span id="cb24-35"><a href="#cb24-35" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Training parameters</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>batch_size <span class="op">=</span> <span class="dv">256</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>num_epochs <span class="op">=</span> <span class="dv">5</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>step_size <span class="op">=</span> <span class="fl">0.001</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>num_batches <span class="op">=</span> <span class="bu">int</span>(np.ceil(<span class="bu">len</span>(train_images) <span class="op">/</span> batch_size))</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> batch_indices(<span class="bu">iter</span>):</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    idx <span class="op">=</span> <span class="bu">iter</span> <span class="op">%</span> num_batches</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">slice</span>(idx <span class="op">*</span> batch_size, (idx <span class="op">+</span> <span class="dv">1</span>) <span class="op">*</span> batch_size)</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Define training objective</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> objective(params, <span class="bu">iter</span>):</span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>    idx <span class="op">=</span> batch_indices(<span class="bu">iter</span>)</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">-</span>log_posterior(params, train_images[idx], train_labels[idx], L2_reg)</span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Get gradient of objective using autograd.</span></span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>objective_grad <span class="op">=</span> <span class="co"># </span><span class="al">TODO</span></span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> print_perf(params, <span class="bu">iter</span>, gradient):</span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">iter</span> <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">&quot;Epoch | Train accuracy | Test accuracy&quot;</span>)</span>
+<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">iter</span> <span class="op">%</span> num_batches <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a>        train_acc <span class="op">=</span> accuracy(params, train_images, train_labels)</span>
+<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a>        test_acc <span class="op">=</span> accuracy(params, test_images, test_labels)</span>
+<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f&quot;  </span><span class="sc">{</span><span class="bu">iter</span> <span class="op">//</span> num_batches<span class="sc">:1}</span><span class="ss">   |  </span><span class="sc">{</span>train_acc<span class="sc">:10.5f}</span><span class="ss">    |  </span><span class="sc">{</span>test_acc<span class="sc">:10.5f}</span><span class="ss">&quot;</span>)</span>
+<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a><span class="co"># The optimizers provided can optimize lists, tuples, or dicts of parameters.</span></span>
+<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a>optimized_params <span class="op">=</span> adam(</span>
+<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a>    objective_grad,</span>
+<span id="cb25-31"><a href="#cb25-31" aria-hidden="true" tabindex="-1"></a>    init_params,</span>
+<span id="cb25-32"><a href="#cb25-32" aria-hidden="true" tabindex="-1"></a>    step_size<span class="op">=</span>step_size,</span>
+<span id="cb25-33"><a href="#cb25-33" aria-hidden="true" tabindex="-1"></a>    num_iters<span class="op">=</span>num_epochs <span class="op">*</span> num_batches,</span>
+<span id="cb25-34"><a href="#cb25-34" aria-hidden="true" tabindex="-1"></a>    callback<span class="op">=</span>print_perf,</span>
+<span id="cb25-35"><a href="#cb25-35" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>To verify that the network was trained as required, let’s take a look at some of the test data images and check that the digits they represent are correctly identified.</p>
 <div id="50" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_images(</span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>    images,</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    ax,</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>    ims_per_row<span class="op">=</span><span class="dv">5</span>,</span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>    padding<span class="op">=</span><span class="dv">5</span>,</span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>    digit_dimensions<span class="op">=</span>(<span class="dv">28</span>, <span class="dv">28</span>),</span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span>matplotlib.cm.binary,</span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>    vmin<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    vmax<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>):</span>
-<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Images should be a (N_images x pixels) matrix.&quot;&quot;&quot;</span></span>
-<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>    N_images <span class="op">=</span> images.shape[<span class="dv">0</span>]</span>
-<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>    N_rows <span class="op">=</span> (N_images <span class="op">-</span> <span class="dv">1</span>) <span class="op">//</span> ims_per_row <span class="op">+</span> <span class="dv">1</span></span>
-<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>    pad_value <span class="op">=</span> np.<span class="bu">min</span>(images.ravel())</span>
-<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>    concat_images <span class="op">=</span> np.full(</span>
-<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>        (</span>
-<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>            (digit_dimensions[<span class="dv">0</span>] <span class="op">+</span> padding) <span class="op">*</span> N_rows <span class="op">+</span> padding,</span>
-<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>            (digit_dimensions[<span class="dv">1</span>] <span class="op">+</span> padding) <span class="op">*</span> ims_per_row <span class="op">+</span> padding,</span>
-<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>        ),</span>
-<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>        pad_value,</span>
-<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(N_images):</span>
-<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>        cur_image <span class="op">=</span> np.reshape(images[i, :], digit_dimensions)</span>
-<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a>        row_ix <span class="op">=</span> i <span class="op">//</span> ims_per_row</span>
-<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a>        col_ix <span class="op">=</span> i <span class="op">%</span> ims_per_row</span>
-<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a>        row_start <span class="op">=</span> padding <span class="op">+</span> (padding <span class="op">+</span> digit_dimensions[<span class="dv">0</span>]) <span class="op">*</span> row_ix</span>
-<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a>        col_start <span class="op">=</span> padding <span class="op">+</span> (padding <span class="op">+</span> digit_dimensions[<span class="dv">1</span>]) <span class="op">*</span> col_ix</span>
-<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a>        concat_images[</span>
-<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a>            row_start : row_start <span class="op">+</span> digit_dimensions[<span class="dv">0</span>], col_start : col_start <span class="op">+</span> digit_dimensions[<span class="dv">1</span>]</span>
-<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a>        ] <span class="op">=</span> cur_image</span>
-<span id="cb25-31"><a href="#cb25-31" aria-hidden="true" tabindex="-1"></a>    cax <span class="op">=</span> ax.matshow(concat_images, cmap<span class="op">=</span>cmap, vmin<span class="op">=</span>vmin, vmax<span class="op">=</span>vmax)</span>
-<span id="cb25-32"><a href="#cb25-32" aria-hidden="true" tabindex="-1"></a>    plt.xticks(np.array([]))</span>
-<span id="cb25-33"><a href="#cb25-33" aria-hidden="true" tabindex="-1"></a>    plt.yticks(np.array([]))</span>
-<span id="cb25-34"><a href="#cb25-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> cax</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_images(</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    images,</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    ax,</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    ims_per_row<span class="op">=</span><span class="dv">5</span>,</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>    padding<span class="op">=</span><span class="dv">5</span>,</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>    digit_dimensions<span class="op">=</span>(<span class="dv">28</span>, <span class="dv">28</span>),</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span>matplotlib.cm.binary,</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>    vmin<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>    vmax<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>):</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Images should be a (N_images x pixels) matrix.&quot;&quot;&quot;</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>    N_images <span class="op">=</span> images.shape[<span class="dv">0</span>]</span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>    N_rows <span class="op">=</span> (N_images <span class="op">-</span> <span class="dv">1</span>) <span class="op">//</span> ims_per_row <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>    pad_value <span class="op">=</span> np.<span class="bu">min</span>(images.ravel())</span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>    concat_images <span class="op">=</span> np.full(</span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>        (</span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>            (digit_dimensions[<span class="dv">0</span>] <span class="op">+</span> padding) <span class="op">*</span> N_rows <span class="op">+</span> padding,</span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>            (digit_dimensions[<span class="dv">1</span>] <span class="op">+</span> padding) <span class="op">*</span> ims_per_row <span class="op">+</span> padding,</span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>        pad_value,</span>
+<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(N_images):</span>
+<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a>        cur_image <span class="op">=</span> np.reshape(images[i, :], digit_dimensions)</span>
+<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a>        row_ix <span class="op">=</span> i <span class="op">//</span> ims_per_row</span>
+<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a>        col_ix <span class="op">=</span> i <span class="op">%</span> ims_per_row</span>
+<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a>        row_start <span class="op">=</span> padding <span class="op">+</span> (padding <span class="op">+</span> digit_dimensions[<span class="dv">0</span>]) <span class="op">*</span> row_ix</span>
+<span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a>        col_start <span class="op">=</span> padding <span class="op">+</span> (padding <span class="op">+</span> digit_dimensions[<span class="dv">1</span>]) <span class="op">*</span> col_ix</span>
+<span id="cb26-28"><a href="#cb26-28" aria-hidden="true" tabindex="-1"></a>        concat_images[</span>
+<span id="cb26-29"><a href="#cb26-29" aria-hidden="true" tabindex="-1"></a>            row_start : row_start <span class="op">+</span> digit_dimensions[<span class="dv">0</span>], col_start : col_start <span class="op">+</span> digit_dimensions[<span class="dv">1</span>]</span>
+<span id="cb26-30"><a href="#cb26-30" aria-hidden="true" tabindex="-1"></a>        ] <span class="op">=</span> cur_image</span>
+<span id="cb26-31"><a href="#cb26-31" aria-hidden="true" tabindex="-1"></a>    cax <span class="op">=</span> ax.matshow(concat_images, cmap<span class="op">=</span>cmap, vmin<span class="op">=</span>vmin, vmax<span class="op">=</span>vmax)</span>
+<span id="cb26-32"><a href="#cb26-32" aria-hidden="true" tabindex="-1"></a>    plt.xticks(np.array([]))</span>
+<span id="cb26-33"><a href="#cb26-33" aria-hidden="true" tabindex="-1"></a>    plt.yticks(np.array([]))</span>
+<span id="cb26-34"><a href="#cb26-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> cax</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div id="51" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots()</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>plot_images(test_images[<span class="dv">100</span>:<span class="dv">105</span>], axes)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots()</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>plot_images(test_images[<span class="dv">100</span>:<span class="dv">105</span>], axes)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div id="52" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>neural_net_predict(optimized_params, test_images[<span class="dv">100</span>:<span class="dv">105</span>]).argmax(axis<span class="op">=</span><span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>neural_net_predict(optimized_params, test_images[<span class="dv">100</span>:<span class="dv">105</span>]).argmax(axis<span class="op">=</span><span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Success! Hopefully you are now convinced that AD is of crucial importance for machine learning and other scientific software approaches.</p>
 <p>The example shown above could also be achieved in PyTorch - see the course on Wednesday morning.</p>
@@ -5111,7 +5144,6 @@ window.Quarto = {
 </ul>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->
