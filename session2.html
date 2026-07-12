@@ -4684,7 +4684,7 @@ window.Quarto = {
 </ul></li>
 <li>Reverse mode is more appropriate if <span class="math inline">\(n\gg m\)</span>, i.e., <span class="math inline">\(\#inputs\gg\#outputs\)</span>.
 <ul>
-<li>e.g., ODE/PDE-constrained optimisation (cost function), machine learning training (loss function), goal-oriented error estimation (quantity of interest).</li>
+<li>e.g., ODE/PDE-constrained optimisation (objective/cost function), machine learning training (loss function), goal-oriented error estimation (quantity of interest).</li>
 </ul></li>
 <li>Forward mode is computed <em>eagerly</em>, whereas reverse mode is done separately from the primal run.</li>
 <li>Reverse mode tends to have higher memory requirements.</li>
@@ -4837,94 +4837,95 @@ window.Quarto = {
 <span id="cb37-85"><a href="#cb37-85" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
 <span id="cb37-86"><a href="#cb37-86" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg params: list of (weights, bias) tuples</span></span>
 <span id="cb37-87"><a href="#cb37-87" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg inputs: (N x D) input data matrix for images</span></span>
-<span id="cb37-88"><a href="#cb37-88" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: normalized class log-probabilities&quot;&quot;&quot;</span></span>
-<span id="cb37-89"><a href="#cb37-89" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> W, b <span class="kw">in</span> params[:<span class="op">-</span><span class="dv">1</span>]:</span>
-<span id="cb37-90"><a href="#cb37-90" aria-hidden="true" tabindex="-1"></a>        inputs <span class="op">=</span> jnp.tanh(inputs <span class="op">@</span> W <span class="op">+</span> b)</span>
-<span id="cb37-91"><a href="#cb37-91" aria-hidden="true" tabindex="-1"></a>    W, b <span class="op">=</span> params[<span class="op">-</span><span class="dv">1</span>]</span>
-<span id="cb37-92"><a href="#cb37-92" aria-hidden="true" tabindex="-1"></a>    outputs <span class="op">=</span> inputs <span class="op">@</span> W <span class="op">+</span> b</span>
-<span id="cb37-93"><a href="#cb37-93" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> outputs <span class="op">-</span> logsumexp(outputs, axis<span class="op">=</span><span class="dv">1</span>, keepdims<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb37-94"><a href="#cb37-94" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-95"><a href="#cb37-95" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> log_posterior(params, inputs, targets, L2_reg):</span>
-<span id="cb37-96"><a href="#cb37-96" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
-<span id="cb37-97"><a href="#cb37-97" aria-hidden="true" tabindex="-1"></a><span class="co">    Compute a log-posterior loss function comprised of prior and likelihood components</span></span>
-<span id="cb37-98"><a href="#cb37-98" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-99"><a href="#cb37-99" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg params: list of (weights, bias) tuples</span></span>
-<span id="cb37-100"><a href="#cb37-100" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg inputs: input data matrix for images</span></span>
-<span id="cb37-101"><a href="#cb37-101" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg targets: target data for labels</span></span>
-<span id="cb37-102"><a href="#cb37-102" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg L2_reg: scalar regularisation parameter</span></span>
-<span id="cb37-103"><a href="#cb37-103" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: log-posterior loss function</span></span>
-<span id="cb37-104"><a href="#cb37-104" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb37-105"><a href="#cb37-105" aria-hidden="true" tabindex="-1"></a>    l2_norm <span class="op">=</span> <span class="bu">sum</span>(jnp.<span class="bu">sum</span>(W<span class="op">**</span><span class="dv">2</span>) <span class="op">+</span> jnp.<span class="bu">sum</span>(b<span class="op">**</span><span class="dv">2</span>) <span class="cf">for</span> W, b <span class="kw">in</span> params)</span>
-<span id="cb37-106"><a href="#cb37-106" aria-hidden="true" tabindex="-1"></a>    log_prior <span class="op">=</span> <span class="op">-</span>L2_reg <span class="op">*</span> l2_norm</span>
-<span id="cb37-107"><a href="#cb37-107" aria-hidden="true" tabindex="-1"></a>    logits <span class="op">=</span> neural_net_predict(params, inputs)</span>
-<span id="cb37-108"><a href="#cb37-108" aria-hidden="true" tabindex="-1"></a>    log_lik <span class="op">=</span> jnp.<span class="bu">sum</span>(logits <span class="op">*</span> targets)</span>
-<span id="cb37-109"><a href="#cb37-109" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> log_prior <span class="op">+</span> log_lik</span>
-<span id="cb37-110"><a href="#cb37-110" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-111"><a href="#cb37-111" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> accuracy(params, inputs, targets):</span>
-<span id="cb37-112"><a href="#cb37-112" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
-<span id="cb37-113"><a href="#cb37-113" aria-hidden="true" tabindex="-1"></a><span class="co">    Compute the accuracy of a set of predictions.</span></span>
-<span id="cb37-114"><a href="#cb37-114" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-115"><a href="#cb37-115" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg params: list of (weights, bias) tuples</span></span>
-<span id="cb37-116"><a href="#cb37-116" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg inputs: input data matrix for images</span></span>
-<span id="cb37-117"><a href="#cb37-117" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg targets: target data for labels</span></span>
-<span id="cb37-118"><a href="#cb37-118" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: mean accuracy of predictions</span></span>
-<span id="cb37-119"><a href="#cb37-119" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb37-120"><a href="#cb37-120" aria-hidden="true" tabindex="-1"></a>    target_class <span class="op">=</span> jnp.argmax(targets, axis<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb37-121"><a href="#cb37-121" aria-hidden="true" tabindex="-1"></a>    predicted_class <span class="op">=</span> jnp.argmax(neural_net_predict(params, inputs), axis<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb37-122"><a href="#cb37-122" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> jnp.mean(predicted_class <span class="op">==</span> target_class)</span>
-<span id="cb37-123"><a href="#cb37-123" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-124"><a href="#cb37-124" aria-hidden="true" tabindex="-1"></a><span class="co"># Define training objective</span></span>
-<span id="cb37-125"><a href="#cb37-125" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> objective(params, inputs, targets, L2_reg<span class="op">=</span><span class="fl">1.0</span>):</span>
-<span id="cb37-126"><a href="#cb37-126" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">-</span>log_posterior(params, inputs, targets, L2_reg)</span>
-<span id="cb37-127"><a href="#cb37-127" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-128"><a href="#cb37-128" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> print_perf(params, <span class="bu">iter</span>):</span>
-<span id="cb37-129"><a href="#cb37-129" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">iter</span> <span class="op">==</span> <span class="dv">0</span>:</span>
-<span id="cb37-130"><a href="#cb37-130" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">&quot;Epoch | Train accuracy | Test accuracy&quot;</span>)</span>
-<span id="cb37-131"><a href="#cb37-131" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">iter</span> <span class="op">%</span> num_batches <span class="op">==</span> <span class="dv">0</span>:</span>
-<span id="cb37-132"><a href="#cb37-132" aria-hidden="true" tabindex="-1"></a>        train_acc <span class="op">=</span> accuracy(params, train_images, train_labels)</span>
-<span id="cb37-133"><a href="#cb37-133" aria-hidden="true" tabindex="-1"></a>        test_acc <span class="op">=</span> accuracy(params, test_images, test_labels)</span>
-<span id="cb37-134"><a href="#cb37-134" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f&quot;  </span><span class="sc">{</span><span class="bu">iter</span> <span class="op">//</span> num_batches<span class="sc">:1}</span><span class="ss">   |  </span><span class="sc">{</span>train_acc<span class="sc">:10.5f}</span><span class="ss">    |  </span><span class="sc">{</span>test_acc<span class="sc">:10.5f}</span><span class="ss">&quot;</span>)</span>
-<span id="cb37-135"><a href="#cb37-135" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-136"><a href="#cb37-136" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_batch(<span class="bu">iter</span>):</span>
-<span id="cb37-137"><a href="#cb37-137" aria-hidden="true" tabindex="-1"></a>    idx <span class="op">=</span> (<span class="bu">iter</span> <span class="op">%</span> num_batches) <span class="op">*</span> batch_size</span>
-<span id="cb37-138"><a href="#cb37-138" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> train_images[idx:idx<span class="op">+</span>batch_size]</span>
-<span id="cb37-139"><a href="#cb37-139" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> train_labels[idx:idx<span class="op">+</span>batch_size]</span>
-<span id="cb37-140"><a href="#cb37-140" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x, y</span>
-<span id="cb37-141"><a href="#cb37-141" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-142"><a href="#cb37-142" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> show_images(</span>
-<span id="cb37-143"><a href="#cb37-143" aria-hidden="true" tabindex="-1"></a>    images,</span>
-<span id="cb37-144"><a href="#cb37-144" aria-hidden="true" tabindex="-1"></a>    ims_per_row<span class="op">=</span><span class="dv">5</span>,</span>
-<span id="cb37-145"><a href="#cb37-145" aria-hidden="true" tabindex="-1"></a>    padding<span class="op">=</span><span class="dv">5</span>,</span>
-<span id="cb37-146"><a href="#cb37-146" aria-hidden="true" tabindex="-1"></a>    digit_dimensions<span class="op">=</span>(<span class="dv">28</span>, <span class="dv">28</span>),</span>
-<span id="cb37-147"><a href="#cb37-147" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span><span class="st">&quot;gray_r&quot;</span>,</span>
-<span id="cb37-148"><a href="#cb37-148" aria-hidden="true" tabindex="-1"></a>    vmin<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb37-149"><a href="#cb37-149" aria-hidden="true" tabindex="-1"></a>    vmax<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb37-150"><a href="#cb37-150" aria-hidden="true" tabindex="-1"></a>):</span>
-<span id="cb37-151"><a href="#cb37-151" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Images should be a (N_images x pixels) matrix.&quot;&quot;&quot;</span></span>
-<span id="cb37-152"><a href="#cb37-152" aria-hidden="true" tabindex="-1"></a>    N_images <span class="op">=</span> images.shape[<span class="dv">0</span>]</span>
-<span id="cb37-153"><a href="#cb37-153" aria-hidden="true" tabindex="-1"></a>    N_rows <span class="op">=</span> (N_images <span class="op">-</span> <span class="dv">1</span>) <span class="op">//</span> ims_per_row <span class="op">+</span> <span class="dv">1</span></span>
-<span id="cb37-154"><a href="#cb37-154" aria-hidden="true" tabindex="-1"></a>    pad_value <span class="op">=</span> np.<span class="bu">min</span>(images.ravel())</span>
-<span id="cb37-155"><a href="#cb37-155" aria-hidden="true" tabindex="-1"></a>    concat_images <span class="op">=</span> np.full(</span>
-<span id="cb37-156"><a href="#cb37-156" aria-hidden="true" tabindex="-1"></a>        (</span>
-<span id="cb37-157"><a href="#cb37-157" aria-hidden="true" tabindex="-1"></a>            (digit_dimensions[<span class="dv">0</span>] <span class="op">+</span> padding) <span class="op">*</span> N_rows <span class="op">+</span> padding,</span>
-<span id="cb37-158"><a href="#cb37-158" aria-hidden="true" tabindex="-1"></a>            (digit_dimensions[<span class="dv">1</span>] <span class="op">+</span> padding) <span class="op">*</span> ims_per_row <span class="op">+</span> padding,</span>
-<span id="cb37-159"><a href="#cb37-159" aria-hidden="true" tabindex="-1"></a>        ),</span>
-<span id="cb37-160"><a href="#cb37-160" aria-hidden="true" tabindex="-1"></a>        pad_value,</span>
-<span id="cb37-161"><a href="#cb37-161" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb37-162"><a href="#cb37-162" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(N_images):</span>
-<span id="cb37-163"><a href="#cb37-163" aria-hidden="true" tabindex="-1"></a>        cur_image <span class="op">=</span> np.reshape(images[i, :], digit_dimensions)</span>
-<span id="cb37-164"><a href="#cb37-164" aria-hidden="true" tabindex="-1"></a>        row_ix <span class="op">=</span> i <span class="op">//</span> ims_per_row</span>
-<span id="cb37-165"><a href="#cb37-165" aria-hidden="true" tabindex="-1"></a>        col_ix <span class="op">=</span> i <span class="op">%</span> ims_per_row</span>
-<span id="cb37-166"><a href="#cb37-166" aria-hidden="true" tabindex="-1"></a>        row_start <span class="op">=</span> padding <span class="op">+</span> (padding <span class="op">+</span> digit_dimensions[<span class="dv">0</span>]) <span class="op">*</span> row_ix</span>
-<span id="cb37-167"><a href="#cb37-167" aria-hidden="true" tabindex="-1"></a>        col_start <span class="op">=</span> padding <span class="op">+</span> (padding <span class="op">+</span> digit_dimensions[<span class="dv">1</span>]) <span class="op">*</span> col_ix</span>
-<span id="cb37-168"><a href="#cb37-168" aria-hidden="true" tabindex="-1"></a>        concat_images[</span>
-<span id="cb37-169"><a href="#cb37-169" aria-hidden="true" tabindex="-1"></a>            row_start : row_start <span class="op">+</span> digit_dimensions[<span class="dv">0</span>], col_start : col_start <span class="op">+</span> digit_dimensions[<span class="dv">1</span>]</span>
-<span id="cb37-170"><a href="#cb37-170" aria-hidden="true" tabindex="-1"></a>        ] <span class="op">=</span> cur_image</span>
-<span id="cb37-171"><a href="#cb37-171" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb37-172"><a href="#cb37-172" aria-hidden="true" tabindex="-1"></a>    fig, axes <span class="op">=</span> plt.subplots()</span>
-<span id="cb37-173"><a href="#cb37-173" aria-hidden="true" tabindex="-1"></a>    cax <span class="op">=</span> axes.matshow(concat_images, cmap<span class="op">=</span>cmap, vmin<span class="op">=</span>vmin, vmax<span class="op">=</span>vmax)</span>
-<span id="cb37-174"><a href="#cb37-174" aria-hidden="true" tabindex="-1"></a>    plt.xticks(np.array([]))</span>
-<span id="cb37-175"><a href="#cb37-175" aria-hidden="true" tabindex="-1"></a>    plt.yticks(np.array([]))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb37-88"><a href="#cb37-88" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: normalized class log-probabilities, a.k.a. &#39;logits&#39;</span></span>
+<span id="cb37-89"><a href="#cb37-89" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb37-90"><a href="#cb37-90" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> W, b <span class="kw">in</span> params[:<span class="op">-</span><span class="dv">1</span>]:</span>
+<span id="cb37-91"><a href="#cb37-91" aria-hidden="true" tabindex="-1"></a>        inputs <span class="op">=</span> jnp.tanh(inputs <span class="op">@</span> W <span class="op">+</span> b)</span>
+<span id="cb37-92"><a href="#cb37-92" aria-hidden="true" tabindex="-1"></a>    W, b <span class="op">=</span> params[<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb37-93"><a href="#cb37-93" aria-hidden="true" tabindex="-1"></a>    outputs <span class="op">=</span> inputs <span class="op">@</span> W <span class="op">+</span> b</span>
+<span id="cb37-94"><a href="#cb37-94" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> outputs <span class="op">-</span> logsumexp(outputs, axis<span class="op">=</span><span class="dv">1</span>, keepdims<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb37-95"><a href="#cb37-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-96"><a href="#cb37-96" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> log_posterior(params, inputs, targets, L2_reg):</span>
+<span id="cb37-97"><a href="#cb37-97" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb37-98"><a href="#cb37-98" aria-hidden="true" tabindex="-1"></a><span class="co">    Compute a log-posterior objective function comprised of prior and likelihood components</span></span>
+<span id="cb37-99"><a href="#cb37-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-100"><a href="#cb37-100" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg params: list of (weights, bias) tuples</span></span>
+<span id="cb37-101"><a href="#cb37-101" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg inputs: input data matrix for images</span></span>
+<span id="cb37-102"><a href="#cb37-102" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg targets: target data for labels</span></span>
+<span id="cb37-103"><a href="#cb37-103" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg L2_reg: scalar regularisation parameter</span></span>
+<span id="cb37-104"><a href="#cb37-104" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: log-posterior objective function</span></span>
+<span id="cb37-105"><a href="#cb37-105" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb37-106"><a href="#cb37-106" aria-hidden="true" tabindex="-1"></a>    l2_norm <span class="op">=</span> <span class="bu">sum</span>(jnp.<span class="bu">sum</span>(W<span class="op">**</span><span class="dv">2</span>) <span class="op">+</span> jnp.<span class="bu">sum</span>(b<span class="op">**</span><span class="dv">2</span>) <span class="cf">for</span> W, b <span class="kw">in</span> params)</span>
+<span id="cb37-107"><a href="#cb37-107" aria-hidden="true" tabindex="-1"></a>    log_prior <span class="op">=</span> <span class="op">-</span>L2_reg <span class="op">*</span> l2_norm</span>
+<span id="cb37-108"><a href="#cb37-108" aria-hidden="true" tabindex="-1"></a>    logits <span class="op">=</span> neural_net_predict(params, inputs)</span>
+<span id="cb37-109"><a href="#cb37-109" aria-hidden="true" tabindex="-1"></a>    log_lik <span class="op">=</span> jnp.<span class="bu">sum</span>(logits <span class="op">*</span> targets)</span>
+<span id="cb37-110"><a href="#cb37-110" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> log_prior <span class="op">+</span> log_lik</span>
+<span id="cb37-111"><a href="#cb37-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-112"><a href="#cb37-112" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> accuracy(params, inputs, targets):</span>
+<span id="cb37-113"><a href="#cb37-113" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb37-114"><a href="#cb37-114" aria-hidden="true" tabindex="-1"></a><span class="co">    Compute the accuracy of a set of predictions.</span></span>
+<span id="cb37-115"><a href="#cb37-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-116"><a href="#cb37-116" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg params: list of (weights, bias) tuples</span></span>
+<span id="cb37-117"><a href="#cb37-117" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg inputs: input data matrix for images</span></span>
+<span id="cb37-118"><a href="#cb37-118" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg targets: target data for labels</span></span>
+<span id="cb37-119"><a href="#cb37-119" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: mean accuracy of predictions</span></span>
+<span id="cb37-120"><a href="#cb37-120" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb37-121"><a href="#cb37-121" aria-hidden="true" tabindex="-1"></a>    target_class <span class="op">=</span> jnp.argmax(targets, axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb37-122"><a href="#cb37-122" aria-hidden="true" tabindex="-1"></a>    predicted_class <span class="op">=</span> jnp.argmax(neural_net_predict(params, inputs), axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb37-123"><a href="#cb37-123" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> jnp.mean(predicted_class <span class="op">==</span> target_class)</span>
+<span id="cb37-124"><a href="#cb37-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-125"><a href="#cb37-125" aria-hidden="true" tabindex="-1"></a><span class="co"># Define training objective</span></span>
+<span id="cb37-126"><a href="#cb37-126" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> objective(params, inputs, targets, L2_reg<span class="op">=</span><span class="fl">1.0</span>):</span>
+<span id="cb37-127"><a href="#cb37-127" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">-</span>log_posterior(params, inputs, targets, L2_reg)</span>
+<span id="cb37-128"><a href="#cb37-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-129"><a href="#cb37-129" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> print_perf(params, iteration):</span>
+<span id="cb37-130"><a href="#cb37-130" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> iteration <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb37-131"><a href="#cb37-131" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">&quot;Epoch | Train accuracy | Test accuracy&quot;</span>)</span>
+<span id="cb37-132"><a href="#cb37-132" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> iteration <span class="op">%</span> num_batches <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb37-133"><a href="#cb37-133" aria-hidden="true" tabindex="-1"></a>        train_acc <span class="op">=</span> accuracy(params, train_images, train_labels)</span>
+<span id="cb37-134"><a href="#cb37-134" aria-hidden="true" tabindex="-1"></a>        test_acc <span class="op">=</span> accuracy(params, test_images, test_labels)</span>
+<span id="cb37-135"><a href="#cb37-135" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f&quot;  </span><span class="sc">{</span>iteration <span class="op">//</span> num_batches<span class="sc">:1}</span><span class="ss">   |  </span><span class="sc">{</span>train_acc<span class="sc">:10.5f}</span><span class="ss">    |  </span><span class="sc">{</span>test_acc<span class="sc">:10.5f}</span><span class="ss">&quot;</span>)</span>
+<span id="cb37-136"><a href="#cb37-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-137"><a href="#cb37-137" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_batch(iteration):</span>
+<span id="cb37-138"><a href="#cb37-138" aria-hidden="true" tabindex="-1"></a>    idx <span class="op">=</span> (iteration <span class="op">%</span> num_batches) <span class="op">*</span> batch_size</span>
+<span id="cb37-139"><a href="#cb37-139" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> train_images[idx:idx<span class="op">+</span>batch_size]</span>
+<span id="cb37-140"><a href="#cb37-140" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> train_labels[idx:idx<span class="op">+</span>batch_size]</span>
+<span id="cb37-141"><a href="#cb37-141" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x, y</span>
+<span id="cb37-142"><a href="#cb37-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-143"><a href="#cb37-143" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> show_images(</span>
+<span id="cb37-144"><a href="#cb37-144" aria-hidden="true" tabindex="-1"></a>    images,</span>
+<span id="cb37-145"><a href="#cb37-145" aria-hidden="true" tabindex="-1"></a>    ims_per_row<span class="op">=</span><span class="dv">5</span>,</span>
+<span id="cb37-146"><a href="#cb37-146" aria-hidden="true" tabindex="-1"></a>    padding<span class="op">=</span><span class="dv">5</span>,</span>
+<span id="cb37-147"><a href="#cb37-147" aria-hidden="true" tabindex="-1"></a>    digit_dimensions<span class="op">=</span>(<span class="dv">28</span>, <span class="dv">28</span>),</span>
+<span id="cb37-148"><a href="#cb37-148" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span><span class="st">&quot;gray_r&quot;</span>,</span>
+<span id="cb37-149"><a href="#cb37-149" aria-hidden="true" tabindex="-1"></a>    vmin<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb37-150"><a href="#cb37-150" aria-hidden="true" tabindex="-1"></a>    vmax<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb37-151"><a href="#cb37-151" aria-hidden="true" tabindex="-1"></a>):</span>
+<span id="cb37-152"><a href="#cb37-152" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Images should be a (N_images x pixels) matrix.&quot;&quot;&quot;</span></span>
+<span id="cb37-153"><a href="#cb37-153" aria-hidden="true" tabindex="-1"></a>    N_images <span class="op">=</span> images.shape[<span class="dv">0</span>]</span>
+<span id="cb37-154"><a href="#cb37-154" aria-hidden="true" tabindex="-1"></a>    N_rows <span class="op">=</span> (N_images <span class="op">-</span> <span class="dv">1</span>) <span class="op">//</span> ims_per_row <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb37-155"><a href="#cb37-155" aria-hidden="true" tabindex="-1"></a>    pad_value <span class="op">=</span> np.<span class="bu">min</span>(images.ravel())</span>
+<span id="cb37-156"><a href="#cb37-156" aria-hidden="true" tabindex="-1"></a>    concat_images <span class="op">=</span> np.full(</span>
+<span id="cb37-157"><a href="#cb37-157" aria-hidden="true" tabindex="-1"></a>        (</span>
+<span id="cb37-158"><a href="#cb37-158" aria-hidden="true" tabindex="-1"></a>            (digit_dimensions[<span class="dv">0</span>] <span class="op">+</span> padding) <span class="op">*</span> N_rows <span class="op">+</span> padding,</span>
+<span id="cb37-159"><a href="#cb37-159" aria-hidden="true" tabindex="-1"></a>            (digit_dimensions[<span class="dv">1</span>] <span class="op">+</span> padding) <span class="op">*</span> ims_per_row <span class="op">+</span> padding,</span>
+<span id="cb37-160"><a href="#cb37-160" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb37-161"><a href="#cb37-161" aria-hidden="true" tabindex="-1"></a>        pad_value,</span>
+<span id="cb37-162"><a href="#cb37-162" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb37-163"><a href="#cb37-163" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(N_images):</span>
+<span id="cb37-164"><a href="#cb37-164" aria-hidden="true" tabindex="-1"></a>        cur_image <span class="op">=</span> np.reshape(images[i, :], digit_dimensions)</span>
+<span id="cb37-165"><a href="#cb37-165" aria-hidden="true" tabindex="-1"></a>        row_ix <span class="op">=</span> i <span class="op">//</span> ims_per_row</span>
+<span id="cb37-166"><a href="#cb37-166" aria-hidden="true" tabindex="-1"></a>        col_ix <span class="op">=</span> i <span class="op">%</span> ims_per_row</span>
+<span id="cb37-167"><a href="#cb37-167" aria-hidden="true" tabindex="-1"></a>        row_start <span class="op">=</span> padding <span class="op">+</span> (padding <span class="op">+</span> digit_dimensions[<span class="dv">0</span>]) <span class="op">*</span> row_ix</span>
+<span id="cb37-168"><a href="#cb37-168" aria-hidden="true" tabindex="-1"></a>        col_start <span class="op">=</span> padding <span class="op">+</span> (padding <span class="op">+</span> digit_dimensions[<span class="dv">1</span>]) <span class="op">*</span> col_ix</span>
+<span id="cb37-169"><a href="#cb37-169" aria-hidden="true" tabindex="-1"></a>        concat_images[</span>
+<span id="cb37-170"><a href="#cb37-170" aria-hidden="true" tabindex="-1"></a>            row_start : row_start <span class="op">+</span> digit_dimensions[<span class="dv">0</span>], col_start : col_start <span class="op">+</span> digit_dimensions[<span class="dv">1</span>]</span>
+<span id="cb37-171"><a href="#cb37-171" aria-hidden="true" tabindex="-1"></a>        ] <span class="op">=</span> cur_image</span>
+<span id="cb37-172"><a href="#cb37-172" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb37-173"><a href="#cb37-173" aria-hidden="true" tabindex="-1"></a>    fig, axes <span class="op">=</span> plt.subplots()</span>
+<span id="cb37-174"><a href="#cb37-174" aria-hidden="true" tabindex="-1"></a>    cax <span class="op">=</span> axes.matshow(concat_images, cmap<span class="op">=</span>cmap, vmin<span class="op">=</span>vmin, vmax<span class="op">=</span>vmax)</span>
+<span id="cb37-175"><a href="#cb37-175" aria-hidden="true" tabindex="-1"></a>    plt.xticks(np.array([]))</span>
+<span id="cb37-176"><a href="#cb37-176" aria-hidden="true" tabindex="-1"></a>    plt.yticks(np.array([]))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div id="48" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Model parameters</span></span>
@@ -4940,34 +4941,36 @@ window.Quarto = {
 <span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a><span class="co">## Load training data</span></span>
 <span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a>N, train_images, train_labels, test_images, test_labels <span class="op">=</span> load_mnist()</span>
 <span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>num_batches <span class="op">=</span> <span class="bu">int</span>(np.ceil(<span class="bu">len</span>(train_images) <span class="op">/</span> batch_size))</span>
-<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a><span class="co">## Train the neural network    </span></span>
-<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Set up the solver</span></span>
-<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a>solver <span class="op">=</span> optax.adam(step_size)</span>
-<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a>opt_state <span class="op">=</span> solver.init(init_params)</span>
-<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a>params <span class="op">=</span> init_params</span>
-<span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-21"><a href="#cb38-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Get gradient of the objective function using JAX.</span></span>
-<span id="cb38-22"><a href="#cb38-22" aria-hidden="true" tabindex="-1"></a>grad_fn <span class="op">=</span> grad(objective)</span>
-<span id="cb38-23"><a href="#cb38-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-24"><a href="#cb38-24" aria-hidden="true" tabindex="-1"></a><span class="at">@jit</span> <span class="co"># Compile each step of the solver for better performance</span></span>
-<span id="cb38-25"><a href="#cb38-25" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> step(params, opt_state, inputs, targets):</span>
-<span id="cb38-26"><a href="#cb38-26" aria-hidden="true" tabindex="-1"></a>    grads <span class="op">=</span> grad_fn(params, inputs, targets)</span>
-<span id="cb38-27"><a href="#cb38-27" aria-hidden="true" tabindex="-1"></a>    updates, opt_state <span class="op">=</span> solver.update(grads, opt_state)</span>
-<span id="cb38-28"><a href="#cb38-28" aria-hidden="true" tabindex="-1"></a>    params <span class="op">=</span> optax.apply_updates(params, updates)</span>
-<span id="cb38-29"><a href="#cb38-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> params, opt_state</span>
-<span id="cb38-30"><a href="#cb38-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-31"><a href="#cb38-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Run the solver</span></span>
-<span id="cb38-32"><a href="#cb38-32" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">iter</span> <span class="kw">in</span> <span class="bu">range</span>(num_epochs <span class="op">*</span> num_batches):</span>
-<span id="cb38-33"><a href="#cb38-33" aria-hidden="true" tabindex="-1"></a>    inputs, targets <span class="op">=</span> get_batch(<span class="bu">iter</span>)</span>
-<span id="cb38-34"><a href="#cb38-34" aria-hidden="true" tabindex="-1"></a>    params, opt_state <span class="op">=</span> step(params, opt_state, inputs, targets)</span>
-<span id="cb38-35"><a href="#cb38-35" aria-hidden="true" tabindex="-1"></a>    print_perf(params, <span class="bu">iter</span>)</span>
-<span id="cb38-36"><a href="#cb38-36" aria-hidden="true" tabindex="-1"></a>optimized_params <span class="op">=</span> params</span>
-<span id="cb38-37"><a href="#cb38-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-38"><a href="#cb38-38" aria-hidden="true" tabindex="-1"></a><span class="co">## Check the result</span></span>
-<span id="cb38-39"><a href="#cb38-39" aria-hidden="true" tabindex="-1"></a>show_images(test_images[<span class="dv">100</span>:<span class="dv">105</span>])</span>
-<span id="cb38-40"><a href="#cb38-40" aria-hidden="true" tabindex="-1"></a>predicted <span class="op">=</span> neural_net_predict(optimized_params, test_images[<span class="dv">100</span>:<span class="dv">105</span>]).argmax(axis<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb38-41"><a href="#cb38-41" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;Predicted: </span><span class="sc">{</span>predicted<span class="sc">}</span><span class="ss">&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;Training dataset size: </span><span class="sc">{</span>N<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;Testing dataset size: </span><span class="sc">{</span><span class="bu">len</span>(test_images)<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a><span class="co">## Train the neural network    </span></span>
+<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Set up the solver</span></span>
+<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a>solver <span class="op">=</span> optax.adam(step_size)</span>
+<span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a>opt_state <span class="op">=</span> solver.init(init_params)</span>
+<span id="cb38-21"><a href="#cb38-21" aria-hidden="true" tabindex="-1"></a>params <span class="op">=</span> init_params</span>
+<span id="cb38-22"><a href="#cb38-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-23"><a href="#cb38-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Get gradient of the objective function using JAX.</span></span>
+<span id="cb38-24"><a href="#cb38-24" aria-hidden="true" tabindex="-1"></a>grad_fn <span class="op">=</span> grad(objective)</span>
+<span id="cb38-25"><a href="#cb38-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-26"><a href="#cb38-26" aria-hidden="true" tabindex="-1"></a><span class="at">@jit</span> <span class="co"># Compile each step of the solver for better performance</span></span>
+<span id="cb38-27"><a href="#cb38-27" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> step(params, opt_state, inputs, targets):</span>
+<span id="cb38-28"><a href="#cb38-28" aria-hidden="true" tabindex="-1"></a>    grads <span class="op">=</span> grad_fn(params, inputs, targets)</span>
+<span id="cb38-29"><a href="#cb38-29" aria-hidden="true" tabindex="-1"></a>    updates, opt_state <span class="op">=</span> solver.update(grads, opt_state)</span>
+<span id="cb38-30"><a href="#cb38-30" aria-hidden="true" tabindex="-1"></a>    params <span class="op">=</span> optax.apply_updates(params, updates)</span>
+<span id="cb38-31"><a href="#cb38-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> params, opt_state</span>
+<span id="cb38-32"><a href="#cb38-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-33"><a href="#cb38-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Run the solver</span></span>
+<span id="cb38-34"><a href="#cb38-34" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> iteration <span class="kw">in</span> <span class="bu">range</span>(num_epochs <span class="op">*</span> num_batches):</span>
+<span id="cb38-35"><a href="#cb38-35" aria-hidden="true" tabindex="-1"></a>    inputs, targets <span class="op">=</span> get_batch(iteration)</span>
+<span id="cb38-36"><a href="#cb38-36" aria-hidden="true" tabindex="-1"></a>    params, opt_state <span class="op">=</span> step(params, opt_state, inputs, targets)</span>
+<span id="cb38-37"><a href="#cb38-37" aria-hidden="true" tabindex="-1"></a>    print_perf(params, iteration)</span>
+<span id="cb38-38"><a href="#cb38-38" aria-hidden="true" tabindex="-1"></a>optimized_params <span class="op">=</span> params</span>
+<span id="cb38-39"><a href="#cb38-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-40"><a href="#cb38-40" aria-hidden="true" tabindex="-1"></a><span class="co">## Check the result</span></span>
+<span id="cb38-41"><a href="#cb38-41" aria-hidden="true" tabindex="-1"></a>show_images(test_images[<span class="dv">100</span>:<span class="dv">105</span>])</span>
+<span id="cb38-42"><a href="#cb38-42" aria-hidden="true" tabindex="-1"></a>predicted <span class="op">=</span> neural_net_predict(optimized_params, test_images[<span class="dv">100</span>:<span class="dv">105</span>]).argmax(axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb38-43"><a href="#cb38-43" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;Predicted: </span><span class="sc">{</span>predicted<span class="sc">}</span><span class="ss">&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="neural-network-example-effect-of-each-pixel-on-the-predicted-result" class="level3">
 <h3 class="anchored" data-anchor-id="neural-network-example-effect-of-each-pixel-on-the-predicted-result">Neural network example: Effect of each pixel on the predicted result</h3>
@@ -4976,7 +4979,7 @@ window.Quarto = {
 <div id="50" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>blank_image <span class="op">=</span> jnp.zeros(<span class="dv">28</span> <span class="op">*</span> <span class="dv">28</span>)</span>
 <span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co"># The neural network expects and returns a 2D array for multiple images</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co"># The neural network expects and returns a 2D array of normalized class log-probabilities (a.k.a. &#39;logits&#39;) for multiple images</span></span>
 <span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>logits <span class="op">=</span> neural_net_predict(optimized_params, blank_image[np.newaxis,:])[<span class="dv">0</span>]</span>
 <span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the output for a blank image</span></span>
@@ -4985,21 +4988,25 @@ window.Quarto = {
 </div>
 <div class="alert alert-block alert-info" style="background-color: rgb(195,223,220); border: 2px solid rgb(157,204,199); color: rgb(0,100,100);">
 <p><b>Exercise 1</b></p>
-<p>What function, when differentiated, will show how each pixel influences the predicted number? Fill this in in the code below.</p>
+<p>What function, when differentiated, will show how each pixel influences the predicted digit? Fill this in in the code below.</p>
 <details>
 <summary>
 <b>Hint</b>
 </summary>
-The function should take the image as input and return the logits for each of the ten digits (the output of the neural network).
+The function should take the image as input and return the normalized class log-probabilities (a.k.a. ‘logits’) for each of the ten digits (the output of the neural network).
 </details>
 <details>
 <summary>
 <b>Solution</b>
 </summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f(x):</span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> neural_net_predict(optimized_params, x[np.newaxis, :])[<span class="dv">0</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg x: input image</span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: prediction of the digit this image represents</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> neural_net_predict(optimized_params, x[np.newaxis, :])[<span class="dv">0</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<p><br> <b>Exercise 2</b></p>
+<p><br> <b>Question 2</b></p>
 <p>We will be calculating the derivative of all outputs (digits) with respect to all inputs (pixels), i.e. the full Jacobian. Which differentiation approach will work best, forward mode or reverse mode? And which function should be used <code>jax.grad</code>, <code>jax.jvp</code> or <code>jax.vjp</code>?</p>
 <details>
 <summary>
@@ -5039,28 +5046,33 @@ The result of this is a list of gradients for each input parameter. There is onl
 </div>
 <div id="52" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f(x):</span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Exercise 1: Define this</span></span>
-<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> ???</span>
-<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>blank_image <span class="op">=</span> jnp.zeros(<span class="dv">28</span> <span class="op">*</span> <span class="dv">28</span>)</span>
-<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a><span class="co"># We need seed vectors for each of the ten digits, we can use the rows of an identity matrix</span></span>
-<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>seed_vectors <span class="op">=</span> jnp.eye(<span class="dv">10</span>)</span>
-<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Exercise 3: Get the effect of each pixel for each of the ten digits</span></span>
-<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> []</span>
-<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> digit, seed_vector <span class="kw">in</span> <span class="bu">enumerate</span>(seed_vectors):</span>
-<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>    result <span class="op">=</span> ??? <span class="co"># </span><span class="al">TODO</span></span>
-<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a>    results.append(result)</span>
-<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the gradient fields</span></span>
-<span id="cb43-17"><a href="#cb43-17" aria-hidden="true" tabindex="-1"></a>vmax <span class="op">=</span> np.<span class="bu">max</span>(np.<span class="bu">abs</span>(np.array(results)))</span>
-<span id="cb43-18"><a href="#cb43-18" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">10</span>, figsize<span class="op">=</span>(<span class="dv">14</span>,<span class="dv">2</span>))</span>
-<span id="cb43-19"><a href="#cb43-19" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> digit, result <span class="kw">in</span> <span class="bu">enumerate</span>(results):</span>
-<span id="cb43-20"><a href="#cb43-20" aria-hidden="true" tabindex="-1"></a>    ax <span class="op">=</span> axes.ravel()[digit]</span>
-<span id="cb43-21"><a href="#cb43-21" aria-hidden="true" tabindex="-1"></a>    ax.imshow(result.reshape(<span class="dv">28</span>, <span class="dv">28</span>), cmap<span class="op">=</span><span class="st">&quot;RdBu_r&quot;</span>, vmax<span class="op">=</span>vmax, vmin<span class="op">=-</span>vmax)</span>
-<span id="cb43-22"><a href="#cb43-22" aria-hidden="true" tabindex="-1"></a>    ax.set_title(digit)</span>
-<span id="cb43-23"><a href="#cb43-23" aria-hidden="true" tabindex="-1"></a>    ax.set_axis_off()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg x: input image</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: prediction of the digit this image represents</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Exercise 1: Define this</span></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> ???</span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a><span class="co"># We will evaluate the function `f` at at array of zeros, which corresponds to a blank image</span></span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>blank_image <span class="op">=</span> jnp.zeros(<span class="dv">28</span> <span class="op">*</span> <span class="dv">28</span>)</span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a><span class="co"># We need seed vectors for each of the ten digits, we can use the rows of an identity matrix</span></span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>seed_vectors <span class="op">=</span> jnp.eye(<span class="dv">10</span>)</span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Exercise 3: Get the effect of each pixel for each of the ten digits</span></span>
+<span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> []</span>
+<span id="cb43-17"><a href="#cb43-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> digit, seed_vector <span class="kw">in</span> <span class="bu">enumerate</span>(seed_vectors):</span>
+<span id="cb43-18"><a href="#cb43-18" aria-hidden="true" tabindex="-1"></a>    result <span class="op">=</span> ??? <span class="co"># </span><span class="al">TODO</span></span>
+<span id="cb43-19"><a href="#cb43-19" aria-hidden="true" tabindex="-1"></a>    results.append(result)</span>
+<span id="cb43-20"><a href="#cb43-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-21"><a href="#cb43-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the gradient fields</span></span>
+<span id="cb43-22"><a href="#cb43-22" aria-hidden="true" tabindex="-1"></a>vmax <span class="op">=</span> np.<span class="bu">max</span>(np.<span class="bu">abs</span>(np.array(results)))</span>
+<span id="cb43-23"><a href="#cb43-23" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">10</span>, figsize<span class="op">=</span>(<span class="dv">14</span>,<span class="dv">2</span>))</span>
+<span id="cb43-24"><a href="#cb43-24" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> digit, result <span class="kw">in</span> <span class="bu">enumerate</span>(results):</span>
+<span id="cb43-25"><a href="#cb43-25" aria-hidden="true" tabindex="-1"></a>    ax <span class="op">=</span> axes.ravel()[digit]</span>
+<span id="cb43-26"><a href="#cb43-26" aria-hidden="true" tabindex="-1"></a>    ax.imshow(result.reshape(<span class="dv">28</span>, <span class="dv">28</span>), cmap<span class="op">=</span><span class="st">&quot;RdBu_r&quot;</span>, vmax<span class="op">=</span>vmax, vmin<span class="op">=-</span>vmax)</span>
+<span id="cb43-27"><a href="#cb43-27" aria-hidden="true" tabindex="-1"></a>    ax.set_title(digit)</span>
+<span id="cb43-28"><a href="#cb43-28" aria-hidden="true" tabindex="-1"></a>    ax.set_axis_off()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="neural-network-example-effect-of-a-perturbation" class="level3">
@@ -5112,7 +5124,7 @@ The function <code>f(x)</code> only takes a single argument so the values and ta
 </details>
 </div>
 <div id="56" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Exercise 4: Compute the derivative in the direction of the pertubation</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Exercise 4: Estimate the change in likelihood of each digit as `change_logits`</span></span>
 <span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>logits, change_logits <span class="op">=</span> ???</span>
 <span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
@@ -5130,6 +5142,12 @@ The function <code>f(x)</code> only takes a single argument so the values and ta
 <p>Complete the code to calculate the actual change in the logits given the perturbation. Why is the prediction different?</p>
 <details>
 <summary>
+<b>Hint</b>
+</summary>
+Automatic differentiation will not be required, just function evaluations.
+</details>
+<details>
+<summary>
 <b>Solution</b>
 </summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>actual_change_logits <span class="op">=</span> f(image <span class="op">+</span> perturbation) <span class="op">-</span> f(image)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -5137,7 +5155,7 @@ They are different because the JVP computes the derivative of the network at the
 </details>
 </div>
 <div id="58" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Exercise 5</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Exercise 5: Calculate the actual change in logits as `actual_change_logits`</span></span>
 <span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>actual_change_logits <span class="op">=</span> ???</span>
 <span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
