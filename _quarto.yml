@@ -6,6 +6,7 @@ project:
     - "session1.ipynb"
     - "session2.ipynb"
     - "miniproject/lorenz96.ipynb"
+    - "miniproject/shallow_water.ipynb"
 
 website:
   title: "Differentiable Programming"
@@ -18,7 +19,9 @@ website:
       - href: session2.ipynb
         text: "JAX"
       - href: miniproject/lorenz96.ipynb
-        text: "Mini-project with Lorenz '96 model"
+        text: "Mini-project with Lorenz '96"
+      - href: miniproject/shallow_water.ipynb
+        text: "Mini-project with shallow water"
 
 authors: 
   - "Joe Wallwork"
