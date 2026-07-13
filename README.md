@@ -11,7 +11,7 @@ All materials, including slides and videos, are available such that individuals 
 course in their own time.
 
 A website for this workshop can be found at
-[https://cambridge-iccs.github.io/differentiable-programming-summer-school-2025/](https://cambridge-iccs.github.io/differentiable-programming-summer-school-2025/).
+[https://cambridge-iccs.github.io/differentiable-programming-summer-school-2026/](https://cambridge-iccs.github.io/differentiable-programming-summer-school-2026/).
 
 ## Contents
 
@@ -125,9 +125,10 @@ interactive VSCode session in your web browser.
 ### Cloning the repo
 
 If you are working through the tutorial locally, obtain a local copy of the
-repository by cloning it from a terminal:
+repository by cloning it from a terminal. Then enter the directory:
 ```sh
 git clone https://github.com/Cambridge-ICCS/differentiable-programming-summer-school-2026.git
+cd differentiable-programming-summer-school-2026
 ```
 
 ### Setting up a Python virtual environment

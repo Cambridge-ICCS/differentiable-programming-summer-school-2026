@@ -1,0 +1,24 @@
+---
+title: "Introduction to Differentiable Programming"
+format:
+  html:
+    toc: false
+---
+
+Derivatives are at the heart of scientific programming. From the Jacobian matrices used to solve nonlinear systems
+to the gradient vectors used for optimisation methods, from the backpropagation operation in machine learning to
+the data assimilation methods used in weather forecasting, all of these techniques rely on derivative information.
+*Differentiable programming* (also known as automatic/algorithmic differentiation (AD)) provides a suite of tools
+for users to compute derivatives of quantities in their code without any manual encoding.
+
+In Session 1, we will learn about the history and mathematical background of differentiable programming and
+consider examples using the [Autograd](https://github.com/HIPS/autograd) AD tool. In Session 2, we will learn
+about more advanced topics and consider examples using the [JAX](https://jax.dev/) differentiable modelling
+framework.
+
+##  📓 Notebooks
+
+- 🔗 **[Session 1](session1.html)**: Introducton to Differentiable Programming with Autograd
+- 🔗 **[Session 2](session2.html)**: Further Differentiable Programming with JAX
+
+
