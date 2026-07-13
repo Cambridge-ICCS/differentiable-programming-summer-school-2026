@@ -36,8 +36,7 @@ More specifically, in session 1 we will:
 * Learn about the *operator overloading* approach.
 * Learn about *forward mode* and *reverse mode* applied to scalar-valued functions.
 * Try out the *Autograd* AD tool applied to some test problems.
-* Verify the derivatives produced by Autograd both manually and using the
-  *Taylor test*.
+* Verify the derivatives produced by Autograd using the *Taylor test*.
 
 In session 2 we will:
 
