@@ -4665,7 +4665,7 @@ window.Quarto = {
 <div id="39" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co"> 2: Verify that the answer coincides with that given by jacrev</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="b75558c1-b0dc-45bd-ae4b-97710f48819a" class="cell">
+<div id="40" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co"> 3 (optional): Compare timings between function evaluation, forward mode, and reverse mode</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
@@ -4722,7 +4722,7 @@ window.Quarto = {
 <section id="f-g-example-hessian-computation" class="level2">
 <h2 class="anchored" data-anchor-id="f-g-example-hessian-computation"><span class="math inline">\(f\)</span> &amp; <span class="math inline">\(g\)</span> example: Hessian computation</h2>
 <p>Let’s apply this to the <span class="math inline">\(f\)</span> function above. Using both approaches we should get the same answer.</p>
-<div id="43" class="cell">
+<div id="44" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> jax <span class="im">import</span> jacfwd, jacrev</span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> hessian1(fun):</span>
@@ -4731,10 +4731,10 @@ window.Quarto = {
 <span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> hessian2(fun):</span>
 <span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> jacfwd(jacrev(fun))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="44" class="cell">
+<div id="45" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>hessian1(f)(x)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="45" class="cell">
+<div id="46" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>hessian2(f)(x)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
@@ -4749,7 +4749,7 @@ window.Quarto = {
 </div>
 <p><br></p>
 <p>To begin with run the two blocks below to train the neural network. These do the same as last session but this time implemented using JAX.</p>
-<div id="47" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;jupyter&quot;,&quot;value&quot;:{&quot;source_hidden&quot;:true}}">
+<div id="48" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;jupyter&quot;,&quot;value&quot;:{&quot;source_hidden&quot;:true}}">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Functions and imports for training the handwriting classifier neural network with JAX</span></span>
 <span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> array</span>
@@ -4927,7 +4927,7 @@ window.Quarto = {
 <span id="cb37-175"><a href="#cb37-175" aria-hidden="true" tabindex="-1"></a>    plt.xticks(np.array([]))</span>
 <span id="cb37-176"><a href="#cb37-176" aria-hidden="true" tabindex="-1"></a>    plt.yticks(np.array([]))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="48" class="cell">
+<div id="49" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Model parameters</span></span>
 <span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>param_scale <span class="op">=</span> <span class="fl">0.1</span></span>
 <span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>layer_sizes <span class="op">=</span> [<span class="dv">784</span>, <span class="dv">200</span>, <span class="dv">100</span>, <span class="dv">10</span>]</span>
@@ -4976,7 +4976,7 @@ window.Quarto = {
 <h3 class="anchored" data-anchor-id="neural-network-example-effect-of-each-pixel-on-the-predicted-result">Neural network example: Effect of each pixel on the predicted result</h3>
 <p>Starting from a blank image we can investigate how changing each pixel will influence the number predicted by the neural network.</p>
 <p>As an aside, we can investigate what the neural network outputs for a blank image… although it is likely to be nonsense.</p>
-<div id="50" class="cell">
+<div id="51" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>blank_image <span class="op">=</span> jnp.zeros(<span class="dv">28</span> <span class="op">*</span> <span class="dv">28</span>)</span>
 <span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co"># The neural network expects and returns a 2D array of probabilities for each digit for multiple images</span></span>
@@ -5044,7 +5044,7 @@ The result of this is a list of gradients for each input parameter. There is onl
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> jax.vmap(<span class="kw">lambda</span> v: vjp_fn(v)[<span class="dv">0</span>])(seed_vectors)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="52" class="cell">
+<div id="53" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f(x):</span>
 <span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
 <span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg x: input image</span></span>
@@ -5078,7 +5078,7 @@ The result of this is a list of gradients for each input parameter. There is onl
 <section id="neural-network-example-effect-of-a-perturbation" class="level3">
 <h3 class="anchored" data-anchor-id="neural-network-example-effect-of-a-perturbation">Neural network example: Effect of a perturbation</h3>
 <p>Next we will look at how making a perturbation to the image would impact the likelihood of each digit. Run the code below to make a perturbation.</p>
-<div id="54" class="cell">
+<div id="55" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Choose an image</span></span>
 <span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>image <span class="op">=</span> test_images[<span class="dv">0</span>]</span>
 <span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -5123,7 +5123,7 @@ The function <code>f(x)</code> only takes a single argument so the values and ta
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>probs, change_probs <span class="op">=</span> jax.jvp(f, (image,), (perturbation,))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="56" class="cell">
+<div id="57" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Exercise 4: Estimate the change in likelihood of each digit as `change_probs`</span></span>
 <span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>probs, change_probs <span class="op">=</span> ???</span>
 <span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a></span>

@@ -4300,7 +4300,7 @@ window.Quarto = {
 <li>Learn about the <em>operator overloading</em> approach.</li>
 <li>Learn about <em>forward mode</em> and <em>reverse mode</em> applied to scalar-valued functions.</li>
 <li>Try out the <em>Autograd</em> AD tool applied to some test problems.</li>
-<li>Verify the derivatives produced by Autograd both manually and using the <em>Taylor test</em>.</li>
+<li>Verify the derivatives produced by Autograd using the <em>Taylor test</em>.</li>
 </ul>
 </section>
 <section id="preparations" class="level2">
@@ -4349,8 +4349,8 @@ window.Quarto = {
 </section>
 <section id="introductory-example" class="level4">
 <h4 class="anchored" data-anchor-id="introductory-example">Introductory example</h4>
-<p>For example, we will take the function <span class="math inline">\(h(x) = \sin(x^2)\)</span>, which is composed of <span class="math display">\[f(x) = x^2 \quad\text{and}\quad g(x) = \sin(x).\]</span></p>
-<p>The derivatives of which are <span class="math display">\[\frac{\mathrm{d}f}{\mathrm{d}x} = 2x, \quad \frac{\mathrm{d}g}{\mathrm{d}x} = \cos(x)\]</span></p>
+<p>For example, we will take the function <span class="math inline">\(h(x) = \sin(x^2)\)</span>, which is composed of <span class="math display">\[f(x) = x^2 \quad\text{and}\quad g(y) = \sin(y).\]</span></p>
+<p>The derivatives of which are <span class="math display">\[\frac{\mathrm{d}f}{\mathrm{d}x} = 2x, \quad \frac{\mathrm{d}g}{\mathrm{d}y} = \cos(y)\]</span></p>
 <p>So, using the chain rule the total derivative is <span class="math display">\[\frac{\mathrm{d}h}{\mathrm{d}x} = \frac{\mathrm{d}g}{\mathrm{d}f} \frac{\mathrm{d}f}{\mathrm{d}x} = \cos(f(x)) \times 2x = 2x \cos(x^2).\]</span></p>
 <p>This function and derivative are shown by the code below. In this example, we make use of <a href="https://github.com/HIPS/autograd">Autograd</a>, which allows us to automatically differentiate <a href="https://numpy.org/">NumPy</a>. As such, we first import its alias for NumPy.</p>
 <div id="10" class="cell">
@@ -4372,7 +4372,7 @@ window.Quarto = {
 <span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="dv">2</span><span class="op">*</span>np.pi, <span class="dv">100</span>)</span>
 <span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>_, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">1</span>)</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>_, axes <span class="op">=</span> plt.subplots(nrows<span class="op">=</span><span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">6</span>))</span>
 <span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].plot(x, h(x))</span>
 <span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].plot(x, dhdx_analytic(x))</span>
 <span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">&quot;h(x)&quot;</span>)</span>
@@ -4395,12 +4395,12 @@ window.Quarto = {
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>dhdx_auto <span class="op">=</span> [dhdx_auto_fn(xi) <span class="cf">for</span> xi <span class="kw">in</span> x]</span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot it</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>plt.plot(x, dhdx_analytic(x), <span class="st">&quot;k-&quot;</span>, label<span class="op">=</span><span class="st">&quot;analytic&quot;</span>)</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>plt.plot(x, dhdx_auto, <span class="st">&quot;ro&quot;</span>, label<span class="op">=</span><span class="st">&quot;AD&quot;</span>)</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>plt.legend(loc<span class="op">=</span><span class="st">&quot;best&quot;</span>)</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="vs">r&quot;</span><span class="dv">$\m</span><span class="vs">athrm{d}h/</span><span class="dv">\m</span><span class="vs">athrm{d}x</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>)</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">3</span>))</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>axes.plot(x, dhdx_analytic(x), <span class="st">&quot;-&quot;</span>, label<span class="op">=</span><span class="st">&quot;analytic&quot;</span>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>axes.plot(x, dhdx_auto, <span class="st">&quot;ro&quot;</span>, label<span class="op">=</span><span class="st">&quot;AD&quot;</span>)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>axes.legend(loc<span class="op">=</span><span class="st">&quot;best&quot;</span>)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>axes.set_ylabel(<span class="vs">r&quot;</span><span class="dv">$\m</span><span class="vs">athrm{d}h/</span><span class="dv">\m</span><span class="vs">athrm{d}x</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>axes.grid(<span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="alert alert-block alert-warning" style="background-color: rgb(236,176,146); border: 2px solid rgb(213,104,79); color: rgb(64,64,64);">
 <p><b>Note:</b> We can evaluate <code>dhdx_auto</code> more compactly as follows:</p>
@@ -4432,7 +4432,7 @@ window.Quarto = {
     \|f(x+\epsilon)-f(x)-\epsilon\:\texttt{dfdx}(x)\|=\mathcal{O}(\epsilon^2),
 \]</span> where <span class="math inline">\(\texttt{dfdx}\)</span> is the AD-generated result.</p>
 <p>We return to the previous example involving the composition <span class="math inline">\(h(x)=g(f(x))\)</span> and double-check that we are happy with the output of the AD tool for this function.</p>
-<div id="75f70432-00e5-4470-adf2-73d3f753b996" class="cell">
+<div id="18" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Choose arbitrary inputs for the composition</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> <span class="fl">2.5</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -4544,7 +4544,7 @@ window.Quarto = {
 </details>
 </div>
 <p>The initial condition can be implemented as</p>
-<div id="21" class="cell">
+<div id="22" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> initial_condition():</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Apply the initial condition for the ODE initial value problem</span></span>
@@ -4565,7 +4565,7 @@ window.Quarto = {
 <p>You’re possibly also aware that the simplest example of an implicit timestepping method to approximate the solution of the ODE is <em>implicit Euler</em>: <span class="math display">\[
     \frac{u_{k}-u_{k-1}}{\Delta t}=f(u_k).
 \]</span> In this case, because the left and right hand side both depend on <span class="math inline">\(u_k\)</span> the equation needs to be rearranged / solved to find <span class="math inline">\(u_k\)</span> each iteration.</p>
-<p>These are also special cases of a more general <em>theta-method</em>, <span class="math display">\[
+<p>These are special cases of a more general <em>theta-method</em>, <span class="math display">\[
     \frac{u_{k}-u_{k-1}}{\Delta t}=(1-\theta)f(u_{k-1})+\theta f(u_k),
 \]</span> where <span class="math inline">\(\theta\in[0,1]\)</span>.</p>
 <div class="alert alert-block alert-warning" style="background-color: rgb(236,176,146); border: 2px solid rgb(213,104,79); color: rgb(64,64,64);">
@@ -4579,7 +4579,7 @@ window.Quarto = {
 \]</span> which can be rearranged to give <span class="math display">\[
     u_{k}=\frac{1+\Delta t(1-\theta)}{1-\Delta t\theta}u_{k-1}.
 \]</span> We can implement this using a Python function as</p>
-<div id="24" class="cell">
+<div id="25" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> theta_step(u_, dt, theta):</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Take a single iteration of a theta method for solving the ODE initial value problem</span></span>
@@ -4594,7 +4594,7 @@ window.Quarto = {
 <span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> u</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We can define the <span class="math inline">\(\theta\)</span>-method in terms of the <code>initial_condition</code> and <code>theta_step</code> functions as</p>
-<div id="26" class="cell">
+<div id="27" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> theta_method(theta):</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Solve the ODE initial value problem</span></span>
@@ -4621,7 +4621,7 @@ window.Quarto = {
 <span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> trajectory</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Forward Euler corresponds to <span class="math inline">\(\theta=0\)</span> and Backward Euler corresponds to <span class="math inline">\(\theta=1\)</span> so we can apply them to the problem with</p>
-<div id="28" class="cell">
+<div id="29" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>explicit <span class="op">=</span> theta_method(<span class="fl">0.0</span>)</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>implicit <span class="op">=</span> theta_method(<span class="fl">1.0</span>)</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -4647,7 +4647,7 @@ window.Quarto = {
 <p>Since we know the analytical solution for this problem, we may make an ‘artificial’ choice of objective function such as <span class="math display">\[
     J(u;\theta)=(u(1)-\mathrm{e}^1)^2,
 \]</span> where here <span class="math inline">\(\mathrm{e}^1=2.7182818...\)</span> is the analytical solution at the end time <span class="math inline">\(t=1\)</span>. We can implement this as the Python function</p>
-<div id="30" class="cell">
+<div id="31" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> objective_function(theta):</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Simple cost function evaluating the l2 error at the end time against the analytical solution u(t)=exp(t).</span></span>
@@ -4673,7 +4673,7 @@ window.Quarto = {
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>dJdtheta <span class="op">=</span> grad(objective_function)(theta)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="32" class="cell">
+<div id="33" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> gradient_descent(maxiter<span class="op">=</span><span class="dv">1000</span>, gtol<span class="op">=</span><span class="fl">1.0e-05</span>, dtol<span class="op">=</span><span class="fl">1.1</span>, alpha<span class="op">=</span><span class="fl">0.10</span>):</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Function for optimising the theta parameter for a theta timestepping method for solving the ODE</span></span>
@@ -4694,30 +4694,31 @@ window.Quarto = {
 <span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>    J_values <span class="op">=</span> []</span>
 <span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(maxiter):</span>
-<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>        J <span class="op">=</span> objective_function(theta)</span>
-<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>        dJdtheta <span class="op">=</span> <span class="co"># </span><span class="al">TODO</span><span class="co">: Compute gradient of J with respect to theta</span></span>
-<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>        theta_values.append(theta)</span>
-<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>        J_values.append(J)</span>
-<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Convergence and divergence checks</span></span>
-<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> i <span class="op">==</span> <span class="dv">0</span>:</span>
-<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>            J_init <span class="op">=</span> J</span>
-<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">abs</span>(dJdtheta <span class="op">/</span> dJdtheta_) <span class="op">&lt;</span> gtol:</span>
-<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f&quot;Converged in </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> iterations due to gradient convergence&quot;</span>)</span>
-<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> theta_values, costs</span>
-<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">abs</span>(J <span class="op">/</span> J_init) <span class="op">&gt;</span> dtol:</span>
-<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>            <span class="cf">raise</span> <span class="pp">RuntimeError</span>(<span class="ss">f&quot;Detected divergence after </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> iterations&quot;</span>)</span>
-<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a>        dJdtheta_ <span class="op">=</span> dJdtheta</span>
-<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-37"><a href="#cb16-37" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Take a step in the descent direction</span></span>
-<span id="cb16-38"><a href="#cb16-38" aria-hidden="true" tabindex="-1"></a>        p <span class="op">=</span> <span class="op">-</span>dJdtheta</span>
-<span id="cb16-39"><a href="#cb16-39" aria-hidden="true" tabindex="-1"></a>        theta <span class="op">+=</span> alpha <span class="op">*</span> p</span>
-<span id="cb16-40"><a href="#cb16-40" aria-hidden="true" tabindex="-1"></a>    <span class="co"># raise RuntimeError(&quot;Reached maximum iteratons without convergence&quot;)  # </span><span class="al">FIXME</span><span class="co">: make more robust</span></span>
-<span id="cb16-41"><a href="#cb16-41" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> theta_values, J_values</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Compute the objective function and its gradient</span></span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>        J <span class="op">=</span> objective_function(theta)</span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>        dJdtheta <span class="op">=</span> <span class="co"># </span><span class="al">TODO</span><span class="co">: Compute gradient of J with respect to theta</span></span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Record the value of theta and corresponding objective value</span></span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>        theta_values.append(theta)</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>        J_values.append(J)</span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Convergence and divergence checks</span></span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> i <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>            J_init <span class="op">=</span> J</span>
+<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>            dJdtheta_init <span class="op">=</span> dJdtheta</span>
+<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">abs</span>(dJdtheta <span class="op">/</span> dJdtheta_init) <span class="op">&lt;</span> gtol:</span>
+<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f&quot;Converged in </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> iterations due to gradient convergence&quot;</span>)</span>
+<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> theta_values, J_values</span>
+<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">abs</span>(J <span class="op">/</span> J_init) <span class="op">&gt;</span> dtol:</span>
+<span id="cb16-37"><a href="#cb16-37" aria-hidden="true" tabindex="-1"></a>            <span class="cf">raise</span> <span class="pp">RuntimeError</span>(<span class="ss">f&quot;Detected divergence after </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> iterations&quot;</span>)</span>
+<span id="cb16-38"><a href="#cb16-38" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb16-39"><a href="#cb16-39" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Take a step in the descent direction</span></span>
+<span id="cb16-40"><a href="#cb16-40" aria-hidden="true" tabindex="-1"></a>        p <span class="op">=</span> <span class="op">-</span>dJdtheta</span>
+<span id="cb16-41"><a href="#cb16-41" aria-hidden="true" tabindex="-1"></a>        theta <span class="op">+=</span> alpha <span class="op">*</span> p</span>
+<span id="cb16-42"><a href="#cb16-42" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">RuntimeError</span>(<span class="st">&quot;Reached maximum iteratons without convergence&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We can then run the gradient descent algorithm and plot it’s progress as follows.</p>
-<div id="34" class="cell">
+<div id="35" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>theta_values, J_values <span class="op">=</span> gradient_descent()</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>theta_opt <span class="op">=</span> theta_values[<span class="op">-</span><span class="dv">1</span>]</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -4730,7 +4731,7 @@ window.Quarto = {
 <span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].grid()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>This looks promising! Let’s examine the solution trajectory for the optimised <span class="math inline">\(\theta\)</span> parameter to check it does a better job than Forward Euler and Backward Euler.</p>
-<div id="36" class="cell">
+<div id="37" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>optimised <span class="op">=</span> theta_method(theta_opt)</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots()</span>
@@ -4748,7 +4749,7 @@ window.Quarto = {
 <p>Now let’s try computing higher order derivatives using the hyperbolic tangent function,</p>
 <p><span class="math display">\[\tanh(x)=\frac{1-e^{-2x}}{1+e^{-2x}}.\]</span></p>
 <p>This can be implemented as the Python function:</p>
-<div id="39" class="cell">
+<div id="40" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> tanh(x):</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (<span class="fl">1.0</span> <span class="op">-</span> np.exp((<span class="op">-</span><span class="dv">2</span> <span class="op">*</span> x))) <span class="op">/</span> (<span class="fl">1.0</span> <span class="op">+</span> np.exp(<span class="op">-</span>(<span class="dv">2</span> <span class="op">*</span> x)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -4775,7 +4776,7 @@ window.Quarto = {
 <span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>axes.legend()<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="41" class="cell">
+<div id="42" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> autograd <span class="im">import</span> elementwise_grad <span class="im">as</span> egrad</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.linspace(<span class="op">-</span><span class="dv">7</span>, <span class="dv">7</span>, <span class="dv">700</span>)</span>
@@ -4804,7 +4805,7 @@ window.Quarto = {
 <p><br></p>
 <p>To achieve a reasonable result, the neural network needs to be <em>trained</em>. This amounts to tuning the weights such that the output more often matches expectations. For example, an image of the number 3 should be correctly identified as such. This is achieved in much the same way as for the ODE-constrained optimisation example: we define an objective (a.k.a. loss) function and apply a gradient-based optimisation method, with the gradient computed using AD.</p>
 <p>First, download the training and testing data set, known as MNIST.</p>
-<div id="44" class="cell">
+<div id="45" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> autograd.numpy <span class="im">as</span> np</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> array</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> gzip</span>
@@ -4883,7 +4884,7 @@ window.Quarto = {
 <span id="cb22-76"><a href="#cb22-76" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;Testing dataset size: </span><span class="sc">{</span><span class="bu">len</span>(test_images)<span class="sc">}</span><span class="ss">&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Next, define the neural network architecture and the components of the objective function.</p>
-<div id="46" class="cell">
+<div id="47" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> autograd.numpy.random <span class="im">as</span> npr</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> autograd.misc.flatten <span class="im">import</span> flatten</span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> autograd.misc.optimizers <span class="im">import</span> adam</span>
@@ -4971,13 +4972,13 @@ window.Quarto = {
 <span id="cb23-85"><a href="#cb23-85" aria-hidden="true" tabindex="-1"></a>init_params <span class="op">=</span> init_random_params(param_scale, layer_sizes)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We can inspect the number of parameters in each layer as follows:</p>
-<div id="fe463f0a-2b98-4839-9b18-0713b6c4de82" class="cell">
+<div id="49" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, param <span class="kw">in</span> <span class="bu">enumerate</span>(init_params):</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    W, b <span class="op">=</span> param</span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f&quot;layer: </span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">, weights: </span><span class="sc">{</span>W<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">, biases: </span><span class="sc">{</span>b<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>To verify that the network gives garbage before being trained, let’s take a look at some of the test data images and check whether the digits they represent are correctly identified.</p>
-<div id="50" class="cell">
+<div id="51" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_images(</span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>    images,</span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    ax,</span>
@@ -5013,11 +5014,11 @@ window.Quarto = {
 <span id="cb25-33"><a href="#cb25-33" aria-hidden="true" tabindex="-1"></a>    plt.yticks(np.array([]))</span>
 <span id="cb25-34"><a href="#cb25-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> cax</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="b4a9e373-ee21-4329-972c-8f05665dcf3d" class="cell">
+<div id="52" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots()</span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>plot_images(test_images[<span class="dv">100</span>:<span class="dv">105</span>], axes)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="48829e4e-2119-4bae-8ba8-dc4c92352212" class="cell">
+<div id="53" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>neural_net_predict(init_params, test_images[<span class="dv">100</span>:<span class="dv">105</span>]).argmax(axis<span class="op">=</span><span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Finally, solve the optimisation problem. In this example, we use the <code>adam</code> optimisation method rather than the simple gradient descent approach because it is better suited to ‘noisy’ machine learning problems.</p>
@@ -5029,7 +5030,7 @@ window.Quarto = {
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>objective_grad <span class="op">=</span> grad(objective)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="48" class="cell">
+<div id="55" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Training parameters</span></span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>batch_size <span class="op">=</span> <span class="dv">256</span></span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>num_epochs <span class="op">=</span> <span class="dv">5</span></span>
@@ -5068,11 +5069,11 @@ window.Quarto = {
 </div>
 <p>Whilst it would be possible to do the optimisation without differentiable programming, the task of deriving derivatives by hand requires manual effort and is a tedious and error-prone task.</p>
 <p>To verify that the network was trained as required, let’s take a look at some of the test data images and check that the digits they represent are correctly identified.</p>
-<div id="51" class="cell">
+<div id="57" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots()</span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>plot_images(test_images[<span class="dv">100</span>:<span class="dv">105</span>], axes)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="52" class="cell">
+<div id="58" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>neural_net_predict(optimized_params, test_images[<span class="dv">100</span>:<span class="dv">105</span>]).argmax(axis<span class="op">=</span><span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Success! Hopefully you are now convinced that AD is of crucial importance for machine learning and other scientific software approaches.</p>
@@ -5132,14 +5133,13 @@ window.Quarto = {
 <li>Learnt about the operator overloading approach.</li>
 <li>Learnt about forward mode and reverse mode applied to scalar-valued functions.</li>
 <li>Tried out the Autograd operator overloading AD tool applied to some test problems.</li>
-<li>Verified the derivatives produced by Autograd both manually and using the Taylor test.</li>
+<li>Verified the derivatives produced by Autograd using the Taylor test.</li>
 </ul>
 <p>In tomorrow’s session (11:00-12:30) we will:</p>
 <ul>
-<li>Learn about forward and reverse modes applied to functions of several variables.</li>
-<li>Calculate higher order derivatives using Autograd.</li>
-<li>Try out the JAX differentiable programming framework and see showcases of more advanced AD usage.</li>
-<li>Learn about checkpointing and using AD to compute higher order derivatives.</li>
+<li>Try out the JAX differentiable programming framework.</li>
+<li>Learn about forward mode and reverse mode applied to functions of several variables.</li>
+<li>Experiment with JAX in a machine learning example.</li>
 </ul>
 </section>
 <section id="european-workshop-on-automatic-differentiation" class="level2">
