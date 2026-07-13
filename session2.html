@@ -4837,13 +4837,13 @@ window.Quarto = {
 <span id="cb37-85"><a href="#cb37-85" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
 <span id="cb37-86"><a href="#cb37-86" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg params: list of (weights, bias) tuples</span></span>
 <span id="cb37-87"><a href="#cb37-87" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg inputs: (N x D) input data matrix for images</span></span>
-<span id="cb37-88"><a href="#cb37-88" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: normalized class log-probabilities, a.k.a. &#39;logits&#39;</span></span>
+<span id="cb37-88"><a href="#cb37-88" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: class probabilities</span></span>
 <span id="cb37-89"><a href="#cb37-89" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
 <span id="cb37-90"><a href="#cb37-90" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> W, b <span class="kw">in</span> params[:<span class="op">-</span><span class="dv">1</span>]:</span>
 <span id="cb37-91"><a href="#cb37-91" aria-hidden="true" tabindex="-1"></a>        inputs <span class="op">=</span> jnp.tanh(inputs <span class="op">@</span> W <span class="op">+</span> b)</span>
 <span id="cb37-92"><a href="#cb37-92" aria-hidden="true" tabindex="-1"></a>    W, b <span class="op">=</span> params[<span class="op">-</span><span class="dv">1</span>]</span>
 <span id="cb37-93"><a href="#cb37-93" aria-hidden="true" tabindex="-1"></a>    outputs <span class="op">=</span> inputs <span class="op">@</span> W <span class="op">+</span> b</span>
-<span id="cb37-94"><a href="#cb37-94" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> outputs <span class="op">-</span> logsumexp(outputs, axis<span class="op">=</span><span class="dv">1</span>, keepdims<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb37-94"><a href="#cb37-94" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> jnp.exp(outputs <span class="op">-</span> logsumexp(outputs, axis<span class="op">=</span><span class="dv">1</span>, keepdims<span class="op">=</span><span class="va">True</span>)) <span class="co"># softmax</span></span>
 <span id="cb37-95"><a href="#cb37-95" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb37-96"><a href="#cb37-96" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> log_posterior(params, inputs, targets, L2_reg):</span>
 <span id="cb37-97"><a href="#cb37-97" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
@@ -4857,8 +4857,8 @@ window.Quarto = {
 <span id="cb37-105"><a href="#cb37-105" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
 <span id="cb37-106"><a href="#cb37-106" aria-hidden="true" tabindex="-1"></a>    l2_norm <span class="op">=</span> <span class="bu">sum</span>(jnp.<span class="bu">sum</span>(W<span class="op">**</span><span class="dv">2</span>) <span class="op">+</span> jnp.<span class="bu">sum</span>(b<span class="op">**</span><span class="dv">2</span>) <span class="cf">for</span> W, b <span class="kw">in</span> params)</span>
 <span id="cb37-107"><a href="#cb37-107" aria-hidden="true" tabindex="-1"></a>    log_prior <span class="op">=</span> <span class="op">-</span>L2_reg <span class="op">*</span> l2_norm</span>
-<span id="cb37-108"><a href="#cb37-108" aria-hidden="true" tabindex="-1"></a>    logits <span class="op">=</span> neural_net_predict(params, inputs)</span>
-<span id="cb37-109"><a href="#cb37-109" aria-hidden="true" tabindex="-1"></a>    log_lik <span class="op">=</span> jnp.<span class="bu">sum</span>(logits <span class="op">*</span> targets)</span>
+<span id="cb37-108"><a href="#cb37-108" aria-hidden="true" tabindex="-1"></a>    probs <span class="op">=</span> neural_net_predict(params, inputs)</span>
+<span id="cb37-109"><a href="#cb37-109" aria-hidden="true" tabindex="-1"></a>    log_lik <span class="op">=</span> jnp.<span class="bu">sum</span>(jnp.log(probs) <span class="op">*</span> targets)</span>
 <span id="cb37-110"><a href="#cb37-110" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> log_prior <span class="op">+</span> log_lik</span>
 <span id="cb37-111"><a href="#cb37-111" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb37-112"><a href="#cb37-112" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> accuracy(params, inputs, targets):</span>
@@ -4979,12 +4979,12 @@ window.Quarto = {
 <div id="50" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>blank_image <span class="op">=</span> jnp.zeros(<span class="dv">28</span> <span class="op">*</span> <span class="dv">28</span>)</span>
 <span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co"># The neural network expects and returns a 2D array of normalized class log-probabilities (a.k.a. &#39;logits&#39;) for multiple images</span></span>
-<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>logits <span class="op">=</span> neural_net_predict(optimized_params, blank_image[np.newaxis,:])[<span class="dv">0</span>]</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co"># The neural network expects and returns a 2D array of probabilities for each digit for multiple images</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>probs <span class="op">=</span> neural_net_predict(optimized_params, blank_image[np.newaxis,:])[<span class="dv">0</span>]</span>
 <span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the output for a blank image</span></span>
-<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> digit, logit <span class="kw">in</span> <span class="bu">enumerate</span>(logits):</span>
-<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f&quot;</span><span class="sc">{</span>digit<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>logit<span class="sc">}</span><span class="ss">&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> digit, prob <span class="kw">in</span> <span class="bu">enumerate</span>(probs):</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f&quot;</span><span class="sc">{</span>digit<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>prob<span class="sc">}</span><span class="ss">&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="alert alert-block alert-info" style="background-color: rgb(195,223,220); border: 2px solid rgb(157,204,199); color: rgb(0,100,100);">
 <p><b>Exercise 1</b></p>
@@ -4993,7 +4993,7 @@ window.Quarto = {
 <summary>
 <b>Hint</b>
 </summary>
-The function should take the image as input and return the normalized class log-probabilities (a.k.a. ‘logits’) for each of the ten digits (the output of the neural network).
+The function should take the image as input and return the probabilities for each of the ten digits (the output of the neural network).
 </details>
 <details>
 <summary>
@@ -5048,7 +5048,7 @@ The result of this is a list of gradients for each input parameter. There is onl
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f(x):</span>
 <span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
 <span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg x: input image</span></span>
-<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: prediction of the digit this image represents</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: probabilities of each digit for this image</span></span>
 <span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
 <span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Exercise 1: Define this</span></span>
 <span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> ???</span>
@@ -5066,9 +5066,9 @@ The result of this is a list of gradients for each input parameter. There is onl
 <span id="cb43-19"><a href="#cb43-19" aria-hidden="true" tabindex="-1"></a>    results.append(result)</span>
 <span id="cb43-20"><a href="#cb43-20" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb43-21"><a href="#cb43-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the gradient fields</span></span>
-<span id="cb43-22"><a href="#cb43-22" aria-hidden="true" tabindex="-1"></a>vmax <span class="op">=</span> np.<span class="bu">max</span>(np.<span class="bu">abs</span>(np.array(results)))</span>
-<span id="cb43-23"><a href="#cb43-23" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">10</span>, figsize<span class="op">=</span>(<span class="dv">14</span>,<span class="dv">2</span>))</span>
-<span id="cb43-24"><a href="#cb43-24" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> digit, result <span class="kw">in</span> <span class="bu">enumerate</span>(results):</span>
+<span id="cb43-22"><a href="#cb43-22" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">10</span>, figsize<span class="op">=</span>(<span class="dv">14</span>,<span class="dv">2</span>))</span>
+<span id="cb43-23"><a href="#cb43-23" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> digit, result <span class="kw">in</span> <span class="bu">enumerate</span>(results):</span>
+<span id="cb43-24"><a href="#cb43-24" aria-hidden="true" tabindex="-1"></a>    vmax <span class="op">=</span> np.<span class="bu">max</span>(np.<span class="bu">abs</span>(np.array(result)))</span>
 <span id="cb43-25"><a href="#cb43-25" aria-hidden="true" tabindex="-1"></a>    ax <span class="op">=</span> axes.ravel()[digit]</span>
 <span id="cb43-26"><a href="#cb43-26" aria-hidden="true" tabindex="-1"></a>    ax.imshow(result.reshape(<span class="dv">28</span>, <span class="dv">28</span>), cmap<span class="op">=</span><span class="st">&quot;RdBu_r&quot;</span>, vmax<span class="op">=</span>vmax, vmin<span class="op">=-</span>vmax)</span>
 <span id="cb43-27"><a href="#cb43-27" aria-hidden="true" tabindex="-1"></a>    ax.set_title(digit)</span>
@@ -5120,52 +5120,23 @@ The function <code>f(x)</code> only takes a single argument so the values and ta
 <summary>
 <b>Solution</b>
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>logits, change_logits <span class="op">=</span> jax.jvp(f, (image,), (perturbation,))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>probs, change_probs <span class="op">=</span> jax.jvp(f, (image,), (perturbation,))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <div id="56" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Exercise 4: Estimate the change in likelihood of each digit as `change_logits`</span></span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>logits, change_logits <span class="op">=</span> ???</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Exercise 4: Estimate the change in likelihood of each digit as `change_probs`</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>probs, change_probs <span class="op">=</span> ???</span>
 <span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
 <span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">6</span>,<span class="dv">3</span>))</span>
-<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].bar(<span class="bu">range</span>(<span class="dv">10</span>), logits)</span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].bar(<span class="bu">range</span>(<span class="dv">10</span>), probs)</span>
 <span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xticks(<span class="bu">range</span>(<span class="dv">10</span>))</span>
-<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">&quot;Original logits&quot;</span>)</span>
-<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].bar(<span class="bu">range</span>(<span class="dv">10</span>), change_logits)</span>
-<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xticks(<span class="bu">range</span>(<span class="dv">10</span>))</span>
-<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="st">&quot;Estimated change in logits&quot;</span>)</span>
-<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div class="alert alert-block alert-info" style="background-color: rgb(195,223,220); border: 2px solid rgb(157,204,199); color: rgb(0,100,100);">
-<p><b>Exercise 5</b></p>
-<p>Complete the code to calculate the actual change in the logits given the perturbation. Why is the prediction different?</p>
-<details>
-<summary>
-<b>Hint</b>
-</summary>
-Automatic differentiation will not be required, just function evaluations.
-</details>
-<details>
-<summary>
-<b>Solution</b>
-</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>actual_change_logits <span class="op">=</span> f(image <span class="op">+</span> perturbation) <span class="op">-</span> f(image)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-They are different because the JVP computes the derivative of the network at the original image, giving a linear approximation to how the logits change. Try reducing the size of the perturbation and see if the difference reduces.
-</details>
-</div>
-<div id="58" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Exercise 5: Calculate the actual change in logits as `actual_change_logits`</span></span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>actual_change_logits <span class="op">=</span> ???</span>
-<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
-<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>w <span class="op">=</span> <span class="fl">0.3</span></span>
-<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>plt.bar(np.arange(<span class="dv">10</span>)<span class="op">-</span>w<span class="op">/</span><span class="dv">2</span>, change_logits, w, label<span class="op">=</span><span class="st">&quot;predicted change&quot;</span>)</span>
-<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>plt.bar(np.arange(<span class="dv">10</span>)<span class="op">+</span>w<span class="op">/</span><span class="dv">2</span>, actual_change_logits, w, label<span class="op">=</span><span class="st">&quot;actual change&quot;</span>)</span>
-<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>plt.xticks(<span class="bu">range</span>(<span class="dv">10</span>))</span>
-<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
-<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">&quot;Change in logits&quot;</span>)</span>
-<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">&quot;Original probabilities&quot;</span>)</span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].semilogy()</span>
+<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].bar(<span class="bu">range</span>(<span class="dv">10</span>), change_probs <span class="op">/</span> probs)</span>
+<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xticks(<span class="bu">range</span>(<span class="dv">10</span>))</span>
+<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="st">&quot;Estimated relative change</span><span class="ch">\n</span><span class="st">in probabilities&quot;</span>)</span>
+<span id="cb46-13"><a href="#cb46-13" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 </section>

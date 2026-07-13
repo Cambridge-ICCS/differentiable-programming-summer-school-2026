@@ -4805,81 +4805,82 @@ window.Quarto = {
 <p>To achieve a reasonable result, the neural network needs to be <em>trained</em>. This amounts to tuning the weights such that the output more often matches expectations. For example, an image of the number 3 should be correctly identified as such. This is achieved in much the same way as for the ODE-constrained optimisation example: we define an objective (a.k.a. loss) function and apply a gradient-based optimisation method, with the gradient computed using AD.</p>
 <p>First, download the training and testing data set, known as MNIST.</p>
 <div id="44" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> array</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> gzip</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> struct</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> urllib.request <span class="im">import</span> urlretrieve</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> autograd.numpy <span class="im">as</span> np</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> array</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> gzip</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> struct</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> urllib.request <span class="im">import</span> urlretrieve</span>
 <span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> download(url, filename):</span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a><span class="co">    Create a data directory and download a file into it from a URL.</span></span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg url: URL to download the file from</span></span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg filename: the name of the file</span></span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> os.path.exists(<span class="st">&quot;data&quot;</span>):</span>
-<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>        os.makedirs(<span class="st">&quot;data&quot;</span>)</span>
-<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>    out_file <span class="op">=</span> os.path.join(<span class="st">&quot;data&quot;</span>, filename)</span>
-<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> os.path.isfile(out_file):</span>
-<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>        urlretrieve(url, out_file)</span>
-<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> download(url, filename):</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a><span class="co">    Create a data directory and download a file into it from a URL.</span></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg url: URL to download the file from</span></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg filename: the name of the file</span></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> os.path.exists(<span class="st">&quot;data&quot;</span>):</span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>        os.makedirs(<span class="st">&quot;data&quot;</span>)</span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>    out_file <span class="op">=</span> os.path.join(<span class="st">&quot;data&quot;</span>, filename)</span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> os.path.isfile(out_file):</span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>        urlretrieve(url, out_file)</span>
 <span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mnist():</span>
-<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
-<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a><span class="co">    Download the MNIST training data as .gz files.</span></span>
-<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: arrays of images and labels for the training and testing sets.</span></span>
-<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>    base_url <span class="op">=</span> <span class="st">&quot;https://storage.googleapis.com/cvdf-datasets/mnist/&quot;</span></span>
-<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> parse_labels(filename):</span>
-<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> gzip.<span class="bu">open</span>(filename, <span class="st">&quot;rb&quot;</span>) <span class="im">as</span> fh:</span>
-<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a>            magic, num_data <span class="op">=</span> struct.unpack(<span class="st">&quot;&gt;II&quot;</span>, fh.read(<span class="dv">8</span>))</span>
-<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> np.array(array.array(<span class="st">&quot;B&quot;</span>, fh.read()), dtype<span class="op">=</span>np.uint8)</span>
-<span id="cb22-34"><a href="#cb22-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-35"><a href="#cb22-35" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> parse_images(filename):</span>
-<span id="cb22-36"><a href="#cb22-36" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> gzip.<span class="bu">open</span>(filename, <span class="st">&quot;rb&quot;</span>) <span class="im">as</span> fh:</span>
-<span id="cb22-37"><a href="#cb22-37" aria-hidden="true" tabindex="-1"></a>            magic, num_data, rows, cols <span class="op">=</span> struct.unpack(<span class="st">&quot;&gt;IIII&quot;</span>, fh.read(<span class="dv">16</span>))</span>
-<span id="cb22-38"><a href="#cb22-38" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> np.array(array.array(<span class="st">&quot;B&quot;</span>, fh.read()), dtype<span class="op">=</span>np.uint8).reshape(num_data, rows, cols)</span>
-<span id="cb22-39"><a href="#cb22-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-40"><a href="#cb22-40" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> filename <span class="kw">in</span> [</span>
-<span id="cb22-41"><a href="#cb22-41" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;train-images-idx3-ubyte.gz&quot;</span>,</span>
-<span id="cb22-42"><a href="#cb22-42" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;train-labels-idx1-ubyte.gz&quot;</span>,</span>
-<span id="cb22-43"><a href="#cb22-43" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;t10k-images-idx3-ubyte.gz&quot;</span>,</span>
-<span id="cb22-44"><a href="#cb22-44" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;t10k-labels-idx1-ubyte.gz&quot;</span>,</span>
-<span id="cb22-45"><a href="#cb22-45" aria-hidden="true" tabindex="-1"></a>    ]:</span>
-<span id="cb22-46"><a href="#cb22-46" aria-hidden="true" tabindex="-1"></a>        download(base_url <span class="op">+</span> filename, filename)</span>
-<span id="cb22-47"><a href="#cb22-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-48"><a href="#cb22-48" aria-hidden="true" tabindex="-1"></a>    train_images <span class="op">=</span> parse_images(<span class="st">&quot;data/train-images-idx3-ubyte.gz&quot;</span>)</span>
-<span id="cb22-49"><a href="#cb22-49" aria-hidden="true" tabindex="-1"></a>    train_labels <span class="op">=</span> parse_labels(<span class="st">&quot;data/train-labels-idx1-ubyte.gz&quot;</span>)</span>
-<span id="cb22-50"><a href="#cb22-50" aria-hidden="true" tabindex="-1"></a>    test_images <span class="op">=</span> parse_images(<span class="st">&quot;data/t10k-images-idx3-ubyte.gz&quot;</span>)</span>
-<span id="cb22-51"><a href="#cb22-51" aria-hidden="true" tabindex="-1"></a>    test_labels <span class="op">=</span> parse_labels(<span class="st">&quot;data/t10k-labels-idx1-ubyte.gz&quot;</span>)</span>
-<span id="cb22-52"><a href="#cb22-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-53"><a href="#cb22-53" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> train_images, train_labels, test_images, test_labels</span>
-<span id="cb22-54"><a href="#cb22-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mnist():</span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a><span class="co">    Download the MNIST training data as .gz files.</span></span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: arrays of images and labels for the training and testing sets.</span></span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>    base_url <span class="op">=</span> <span class="st">&quot;https://storage.googleapis.com/cvdf-datasets/mnist/&quot;</span></span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> parse_labels(filename):</span>
+<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> gzip.<span class="bu">open</span>(filename, <span class="st">&quot;rb&quot;</span>) <span class="im">as</span> fh:</span>
+<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a>            magic, num_data <span class="op">=</span> struct.unpack(<span class="st">&quot;&gt;II&quot;</span>, fh.read(<span class="dv">8</span>))</span>
+<span id="cb22-34"><a href="#cb22-34" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> np.array(array.array(<span class="st">&quot;B&quot;</span>, fh.read()), dtype<span class="op">=</span>np.uint8)</span>
+<span id="cb22-35"><a href="#cb22-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-36"><a href="#cb22-36" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> parse_images(filename):</span>
+<span id="cb22-37"><a href="#cb22-37" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> gzip.<span class="bu">open</span>(filename, <span class="st">&quot;rb&quot;</span>) <span class="im">as</span> fh:</span>
+<span id="cb22-38"><a href="#cb22-38" aria-hidden="true" tabindex="-1"></a>            magic, num_data, rows, cols <span class="op">=</span> struct.unpack(<span class="st">&quot;&gt;IIII&quot;</span>, fh.read(<span class="dv">16</span>))</span>
+<span id="cb22-39"><a href="#cb22-39" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> np.array(array.array(<span class="st">&quot;B&quot;</span>, fh.read()), dtype<span class="op">=</span>np.uint8).reshape(num_data, rows, cols)</span>
+<span id="cb22-40"><a href="#cb22-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-41"><a href="#cb22-41" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> filename <span class="kw">in</span> [</span>
+<span id="cb22-42"><a href="#cb22-42" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;train-images-idx3-ubyte.gz&quot;</span>,</span>
+<span id="cb22-43"><a href="#cb22-43" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;train-labels-idx1-ubyte.gz&quot;</span>,</span>
+<span id="cb22-44"><a href="#cb22-44" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;t10k-images-idx3-ubyte.gz&quot;</span>,</span>
+<span id="cb22-45"><a href="#cb22-45" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;t10k-labels-idx1-ubyte.gz&quot;</span>,</span>
+<span id="cb22-46"><a href="#cb22-46" aria-hidden="true" tabindex="-1"></a>    ]:</span>
+<span id="cb22-47"><a href="#cb22-47" aria-hidden="true" tabindex="-1"></a>        download(base_url <span class="op">+</span> filename, filename)</span>
+<span id="cb22-48"><a href="#cb22-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-49"><a href="#cb22-49" aria-hidden="true" tabindex="-1"></a>    train_images <span class="op">=</span> parse_images(<span class="st">&quot;data/train-images-idx3-ubyte.gz&quot;</span>)</span>
+<span id="cb22-50"><a href="#cb22-50" aria-hidden="true" tabindex="-1"></a>    train_labels <span class="op">=</span> parse_labels(<span class="st">&quot;data/train-labels-idx1-ubyte.gz&quot;</span>)</span>
+<span id="cb22-51"><a href="#cb22-51" aria-hidden="true" tabindex="-1"></a>    test_images <span class="op">=</span> parse_images(<span class="st">&quot;data/t10k-images-idx3-ubyte.gz&quot;</span>)</span>
+<span id="cb22-52"><a href="#cb22-52" aria-hidden="true" tabindex="-1"></a>    test_labels <span class="op">=</span> parse_labels(<span class="st">&quot;data/t10k-labels-idx1-ubyte.gz&quot;</span>)</span>
+<span id="cb22-53"><a href="#cb22-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-54"><a href="#cb22-54" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> train_images, train_labels, test_images, test_labels</span>
 <span id="cb22-55"><a href="#cb22-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-56"><a href="#cb22-56" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> load_mnist():</span>
-<span id="cb22-57"><a href="#cb22-57" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
-<span id="cb22-58"><a href="#cb22-58" aria-hidden="true" tabindex="-1"></a><span class="co">    Normalise the MNIST data in preparation for training and testing.</span></span>
-<span id="cb22-59"><a href="#cb22-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-60"><a href="#cb22-60" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: number of images and arrays of normalised images and labels</span></span>
-<span id="cb22-61"><a href="#cb22-61" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb22-62"><a href="#cb22-62" aria-hidden="true" tabindex="-1"></a>    partial_flatten <span class="op">=</span> <span class="kw">lambda</span> x: np.reshape(x, (x.shape[<span class="dv">0</span>], np.prod(x.shape[<span class="dv">1</span>:])))</span>
-<span id="cb22-63"><a href="#cb22-63" aria-hidden="true" tabindex="-1"></a>    one_hot <span class="op">=</span> <span class="kw">lambda</span> x, k: np.array(x[:, <span class="va">None</span>] <span class="op">==</span> np.arange(k)[<span class="va">None</span>, :], dtype<span class="op">=</span><span class="bu">int</span>)</span>
-<span id="cb22-64"><a href="#cb22-64" aria-hidden="true" tabindex="-1"></a>    train_images, train_labels, test_images, test_labels <span class="op">=</span> mnist()</span>
-<span id="cb22-65"><a href="#cb22-65" aria-hidden="true" tabindex="-1"></a>    train_images <span class="op">=</span> partial_flatten(train_images) <span class="op">/</span> <span class="fl">255.0</span></span>
-<span id="cb22-66"><a href="#cb22-66" aria-hidden="true" tabindex="-1"></a>    test_images <span class="op">=</span> partial_flatten(test_images) <span class="op">/</span> <span class="fl">255.0</span></span>
-<span id="cb22-67"><a href="#cb22-67" aria-hidden="true" tabindex="-1"></a>    train_labels <span class="op">=</span> one_hot(train_labels, <span class="dv">10</span>)</span>
-<span id="cb22-68"><a href="#cb22-68" aria-hidden="true" tabindex="-1"></a>    test_labels <span class="op">=</span> one_hot(test_labels, <span class="dv">10</span>)</span>
-<span id="cb22-69"><a href="#cb22-69" aria-hidden="true" tabindex="-1"></a>    N_data <span class="op">=</span> train_images.shape[<span class="dv">0</span>]</span>
-<span id="cb22-70"><a href="#cb22-70" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> N_data, train_images, train_labels, test_images, test_labels</span>
-<span id="cb22-71"><a href="#cb22-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-72"><a href="#cb22-72" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;Loading training data...&quot;</span>)</span>
-<span id="cb22-73"><a href="#cb22-73" aria-hidden="true" tabindex="-1"></a>N, train_images, train_labels, test_images, test_labels <span class="op">=</span> load_mnist()</span>
-<span id="cb22-74"><a href="#cb22-74" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;Training dataset size: </span><span class="sc">{</span>N<span class="sc">}</span><span class="ss">&quot;</span>)</span>
-<span id="cb22-75"><a href="#cb22-75" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;Testing dataset size: </span><span class="sc">{</span><span class="bu">len</span>(test_images)<span class="sc">}</span><span class="ss">&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb22-56"><a href="#cb22-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-57"><a href="#cb22-57" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> load_mnist():</span>
+<span id="cb22-58"><a href="#cb22-58" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb22-59"><a href="#cb22-59" aria-hidden="true" tabindex="-1"></a><span class="co">    Normalise the MNIST data in preparation for training and testing.</span></span>
+<span id="cb22-60"><a href="#cb22-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-61"><a href="#cb22-61" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: number of images and arrays of normalised images and labels</span></span>
+<span id="cb22-62"><a href="#cb22-62" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb22-63"><a href="#cb22-63" aria-hidden="true" tabindex="-1"></a>    partial_flatten <span class="op">=</span> <span class="kw">lambda</span> x: np.reshape(x, (x.shape[<span class="dv">0</span>], np.prod(x.shape[<span class="dv">1</span>:])))</span>
+<span id="cb22-64"><a href="#cb22-64" aria-hidden="true" tabindex="-1"></a>    one_hot <span class="op">=</span> <span class="kw">lambda</span> x, k: np.array(x[:, <span class="va">None</span>] <span class="op">==</span> np.arange(k)[<span class="va">None</span>, :], dtype<span class="op">=</span><span class="bu">int</span>)</span>
+<span id="cb22-65"><a href="#cb22-65" aria-hidden="true" tabindex="-1"></a>    train_images, train_labels, test_images, test_labels <span class="op">=</span> mnist()</span>
+<span id="cb22-66"><a href="#cb22-66" aria-hidden="true" tabindex="-1"></a>    train_images <span class="op">=</span> partial_flatten(train_images) <span class="op">/</span> <span class="fl">255.0</span></span>
+<span id="cb22-67"><a href="#cb22-67" aria-hidden="true" tabindex="-1"></a>    test_images <span class="op">=</span> partial_flatten(test_images) <span class="op">/</span> <span class="fl">255.0</span></span>
+<span id="cb22-68"><a href="#cb22-68" aria-hidden="true" tabindex="-1"></a>    train_labels <span class="op">=</span> one_hot(train_labels, <span class="dv">10</span>)</span>
+<span id="cb22-69"><a href="#cb22-69" aria-hidden="true" tabindex="-1"></a>    test_labels <span class="op">=</span> one_hot(test_labels, <span class="dv">10</span>)</span>
+<span id="cb22-70"><a href="#cb22-70" aria-hidden="true" tabindex="-1"></a>    N_data <span class="op">=</span> train_images.shape[<span class="dv">0</span>]</span>
+<span id="cb22-71"><a href="#cb22-71" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> N_data, train_images, train_labels, test_images, test_labels</span>
+<span id="cb22-72"><a href="#cb22-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-73"><a href="#cb22-73" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;Loading training data...&quot;</span>)</span>
+<span id="cb22-74"><a href="#cb22-74" aria-hidden="true" tabindex="-1"></a>N, train_images, train_labels, test_images, test_labels <span class="op">=</span> load_mnist()</span>
+<span id="cb22-75"><a href="#cb22-75" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;Training dataset size: </span><span class="sc">{</span>N<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb22-76"><a href="#cb22-76" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;Testing dataset size: </span><span class="sc">{</span><span class="bu">len</span>(test_images)<span class="sc">}</span><span class="ss">&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Next, define the neural network architecture and the components of the objective function.</p>
 <div id="46" class="cell">
@@ -4913,12 +4914,12 @@ window.Quarto = {
 <span id="cb23-28"><a href="#cb23-28" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
 <span id="cb23-29"><a href="#cb23-29" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg params: list of (weights, bias) tuples</span></span>
 <span id="cb23-30"><a href="#cb23-30" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg inputs: (N x D) input data matrix for images</span></span>
-<span id="cb23-31"><a href="#cb23-31" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: normalized class log-probabilities, a.k.a. &#39;logits&#39;</span></span>
+<span id="cb23-31"><a href="#cb23-31" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: class probabilities</span></span>
 <span id="cb23-32"><a href="#cb23-32" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
 <span id="cb23-33"><a href="#cb23-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> W, b <span class="kw">in</span> params:</span>
 <span id="cb23-34"><a href="#cb23-34" aria-hidden="true" tabindex="-1"></a>        outputs <span class="op">=</span> np.dot(inputs, W) <span class="op">+</span> b</span>
 <span id="cb23-35"><a href="#cb23-35" aria-hidden="true" tabindex="-1"></a>        inputs <span class="op">=</span> np.tanh(outputs)</span>
-<span id="cb23-36"><a href="#cb23-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> outputs <span class="op">-</span> logsumexp(outputs, axis<span class="op">=</span><span class="dv">1</span>, keepdims<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb23-36"><a href="#cb23-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.exp(outputs <span class="op">-</span> logsumexp(outputs, axis<span class="op">=</span><span class="dv">1</span>, keepdims<span class="op">=</span><span class="va">True</span>)) <span class="co"># softmax</span></span>
 <span id="cb23-37"><a href="#cb23-37" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb23-38"><a href="#cb23-38" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb23-39"><a href="#cb23-39" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> l2_norm(params):</span>
@@ -4943,8 +4944,8 @@ window.Quarto = {
 <span id="cb23-58"><a href="#cb23-58" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: log-posterior objective function</span></span>
 <span id="cb23-59"><a href="#cb23-59" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
 <span id="cb23-60"><a href="#cb23-60" aria-hidden="true" tabindex="-1"></a>    log_prior <span class="op">=</span> <span class="op">-</span>L2_reg <span class="op">*</span> l2_norm(params)</span>
-<span id="cb23-61"><a href="#cb23-61" aria-hidden="true" tabindex="-1"></a>    logits <span class="op">=</span> neural_net_predict(params, inputs)</span>
-<span id="cb23-62"><a href="#cb23-62" aria-hidden="true" tabindex="-1"></a>    log_lik <span class="op">=</span> jnp.<span class="bu">sum</span>(logits <span class="op">*</span> targets)</span>
+<span id="cb23-61"><a href="#cb23-61" aria-hidden="true" tabindex="-1"></a>    probs <span class="op">=</span> neural_net_predict(params, inputs)</span>
+<span id="cb23-62"><a href="#cb23-62" aria-hidden="true" tabindex="-1"></a>    log_lik <span class="op">=</span> np.<span class="bu">sum</span>(np.log(probs) <span class="op">*</span> targets)</span>
 <span id="cb23-63"><a href="#cb23-63" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> log_prior <span class="op">+</span> log_lik</span>
 <span id="cb23-64"><a href="#cb23-64" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb23-65"><a href="#cb23-65" aria-hidden="true" tabindex="-1"></a></span>
