@@ -133,9 +133,7 @@ cd differentiable-programming-summer-school-2026
 
 ### Setting up a Python virtual environment
 
-If you are using Codespaces then you can skip this step.
-
-Otherwise, set up a Python virtual environment for the course:
+Next, set up a Python virtual environment for the course:
 ```sh
 python3 -m venv dp-venv
 source dp-venv/bin/activate
