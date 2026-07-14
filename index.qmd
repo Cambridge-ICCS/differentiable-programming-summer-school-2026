@@ -25,5 +25,5 @@ Main course notebooks:
 
 Mini-project notebooks:
 
-- 🔗 **[Lorenz '96](lorenz96.html)**: Mini-project with the Lorenz '96 model
-- 🔗 **[Shallow water](shallow_water.html)**: Mini-project with the linear shallow water equations
+- 🔗 **[Lorenz '96](miniproject/lorenz96.html)**: Mini-project with the Lorenz '96 model
+- 🔗 **[Shallow water](miniproject/shallow_water.html)**: Mini-project with the linear shallow water equations
