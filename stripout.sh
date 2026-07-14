@@ -20,4 +20,4 @@ nbstripout --extra-keys="metadata.celltoolbar" \
   "cell.metadata.code_folding" \
   "cell.metadata.tags" \
   "cell.metadata.init_cell" \
-  session1.ipynb session2.ipynb
+  session1.ipynb session2.ipynb miniproject/lorenz96.ipynb miniproject/shallow_water.ipynb

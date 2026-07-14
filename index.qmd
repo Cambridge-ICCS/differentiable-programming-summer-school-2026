@@ -18,7 +18,12 @@ framework.
 
 ##  📓 Notebooks
 
+Main course notebooks:
+
 - 🔗 **[Session 1](session1.html)**: Introducton to Differentiable Programming with Autograd
 - 🔗 **[Session 2](session2.html)**: Further Differentiable Programming with JAX
 
+Mini-project notebooks:
 
+- 🔗 **[Lorenz '96](lorenz96.html)**: Mini-project with the Lorenz '96 model
+- 🔗 **[Shallow water](shallow_water.html)**: Mini-project with the linear shallow water equations
