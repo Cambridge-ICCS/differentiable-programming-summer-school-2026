@@ -4624,7 +4624,7 @@ window.Quarto = {
 <span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>        t <span class="op">+=</span> dt</span>
 <span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> trajectory</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Forward Euler corresponds to <span class="math inline">\(\theta=0\)</span> and Backward Euler corresponds to <span class="math inline">\(\theta=1\)</span> so we can apply them to the problem with</p>
+<p>Explicit Euler corresponds to <span class="math inline">\(\theta=0\)</span> and Implicit Euler corresponds to <span class="math inline">\(\theta=1\)</span> so we can apply them to the problem with</p>
 <div id="29" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>explicit <span class="op">=</span> theta_method(<span class="fl">0.0</span>)</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>implicit <span class="op">=</span> theta_method(<span class="fl">1.0</span>)</span>
@@ -4641,7 +4641,7 @@ window.Quarto = {
 </section>
 <section id="ode-example-optimisation-with-gradient-descent" class="level2">
 <h2 class="anchored" data-anchor-id="ode-example-optimisation-with-gradient-descent">ODE example: optimisation with gradient descent</h2>
-<p>As we see from the plot above, the forward Euler method tends to underestimate the solution, whereas the backward Euler method tends to overestimate it. Let’s try to optimise the value of <span class="math inline">\(\theta\)</span> to best match the solution using a gradient-based optimisation method. To do that, we first need the gradient. <strong>AD enables us to do this automatically.</strong></p>
+<p>As we see from the plot above, the Explicit Euler method tends to underestimate the solution, whereas the Implicit Euler method tends to overestimate it. Let’s try to optimise the value of <span class="math inline">\(\theta\)</span> to best match the solution using a gradient-based optimisation method. To do that, we first need the gradient. <strong>AD enables us to do this automatically.</strong></p>
 <p>The optimisation problem we seek to solve is to minimise some error measure <span class="math inline">\(J\)</span> for the approximation of <span class="math inline">\(u\)</span> by varying <span class="math inline">\(\theta\)</span>. That is, <span class="math display">\[
     \min_{\theta\in[0,1]}J(u;\theta).
 \]</span> where the notation <span class="math inline">\(J(u;\theta)\)</span> refers to the implicit dependence of the solution approximation <span class="math inline">\(u\)</span> on <span class="math inline">\(\theta\)</span>.</p>
@@ -4734,7 +4734,7 @@ window.Quarto = {
 <span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].legend()</span>
 <span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].grid()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>This looks promising! Let’s examine the solution trajectory for the optimised <span class="math inline">\(\theta\)</span> parameter to check it does a better job than Forward Euler and Backward Euler.</p>
+<p>This looks promising! Let’s examine the solution trajectory for the optimised <span class="math inline">\(\theta\)</span> parameter to check it does a better job than Explicit Euler and Implicit Euler.</p>
 <div id="37" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>optimised <span class="op">=</span> theta_method(theta_opt)</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>

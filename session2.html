@@ -4453,12 +4453,11 @@ window.Quarto = {
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> jnp.asarray([jnp.sin(y), jnp.cos(y)])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div id="20" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> jax <span class="im">import</span> jvp</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="bu">help</span>(jvp)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> jax <span class="im">import</span> jvp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="alert alert-block alert-info" style="background-color: rgb(195,223,220); border: 2px solid rgb(157,204,199); color: rgb(0,100,100);">
 <p><b>Exercise 1</b></p>
-<p>Take a look at the helptext for <code>jvp</code> to determine its signature. Use this to compute both the function evaluation value <code>y</code> for <span class="math inline">\(y=f(x)\)</span> with <span class="math inline">\(x=(2,\pi)\)</span> and the partial derivative <code>dfdx1</code> for <span class="math inline">\(\frac{\partial f}{\partial x_1}\)</span> for the same <span class="math inline">\(x\)</span>.</p>
+<p>Take a look at the helptext for <code>jvp</code> to determine its signature. (Type <code>help(jvp)</code>.) Use this to compute both the function evaluation value <code>y</code> for <span class="math inline">\(y=f(x)\)</span> with <span class="math inline">\(x=(2,\pi)\)</span> and the partial derivative <code>dfdx1</code> for <span class="math inline">\(\frac{\partial f}{\partial x_1}\)</span> for the same <span class="math inline">\(x\)</span>.</p>
 <p><b>Solution</b></p>
 <details>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> jnp.array([<span class="fl">2.0</span>, np.pi])</span>
@@ -4477,7 +4476,7 @@ window.Quarto = {
 <p>Assemble the full Jacobian.</p>
 <p><b>Solution</b></p>
 <details>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>dfdx <span class="op">=</span> jnp.array([dfdx1[<span class="dv">0</span>], dfdx2[<span class="dv">0</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>dfdx <span class="op">=</span> jnp.hstack((dfdx1, dfdx2))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <div id="22" class="cell">
@@ -4498,8 +4497,7 @@ window.Quarto = {
 </div>
 <p>We can also compute the Jacobian in one shot using the <code>jacfwd</code> function.</p>
 <div id="26" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> jax <span class="im">import</span> jacfwd</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="bu">help</span>(jacfwd)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> jax <span class="im">import</span> jacfwd</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div id="27" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> jnp.array([<span class="fl">2.0</span>, np.pi])</span>
@@ -4510,7 +4508,7 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="chaining-forward-mode-derivatives">Chaining forward mode derivatives</h2>
 <p>But how does this correspond to the case with three functions?</p>
 <p>Suppose in addition to <span class="math inline">\(\mathbf{f}:\mathbb{R}^m\rightarrow\mathbb{R}^n\)</span> we have <span class="math inline">\(\mathbf{g}:\mathbb{R}^n\rightarrow\mathbb{R}^k\)</span>, and their composition <span class="math inline">\(\boldsymbol{h}=\mathbf{f}\circ\mathbf{g}\)</span>, where the notation here implies <span class="math display">\[
-\mathbf{f}\circ\mathbf{g}(\mathbf{x})=\mathbf{g}(\mathbf{f}(\mathbf{x}))
+(\mathbf{f}\circ\mathbf{g})(\mathbf{x})=\mathbf{g}(\mathbf{f}(\mathbf{x}))
 \]</span> for <span class="math inline">\(\mathbf{x}\in\mathbb{R}^m\)</span>. Then by applying the chain rule <span class="math display">\[
 \begin{align}
 \mathrm{JVP}(\boldsymbol{\ell},\mathbf{x},\dot{\mathbf{x}})
@@ -4530,7 +4528,7 @@ window.Quarto = {
 </div>
 <div class="alert alert-block alert-info" style="background-color: rgb(195,223,220); border: 2px solid rgb(157,204,199); color: rgb(0,100,100);">
 <p><b>Exercise 1</b></p>
-<p>Revisit the example above but now compute the full gradient of the composition <span class="math inline">\(h=g\circ f\)</span> using two JVP applications.</p>
+<p>Revisit the example above but now compute the full gradient of the composition <span class="math inline">\(h=f\circ g\)</span> using two JVP applications.</p>
 <p><b>Solution</b></p>
 <details>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> jnp.array([<span class="fl">2.0</span>, np.pi])</span>
@@ -4660,8 +4658,7 @@ window.Quarto = {
 </details>
 </div>
 <div id="37" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> jax <span class="im">import</span> vjp</span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="bu">help</span>(vjp)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> jax <span class="im">import</span> vjp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div id="38" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co"> 1: Compute the full gradient of f using a single vjp application</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -4693,6 +4690,9 @@ window.Quarto = {
 <li>Forward mode is computed <em>eagerly</em>, whereas reverse mode is done separately from the primal run.</li>
 <li>Reverse mode tends to have higher memory requirements.</li>
 </ul>
+<div class="alert alert-block alert-warning" style="background-color: rgb(236,176,146); border: 2px solid rgb(213,104,79); color: rgb(64,64,64);">
+<p><b>Note:</b> As a rule of thumb, one reverse mode call is roughly equivalent to four evaluations of the function being differentiated.</p>
+</div>
 </section>
 <section id="computing-hessians-in-the-vector-case" class="level2">
 <h2 class="anchored" data-anchor-id="computing-hessians-in-the-vector-case">Computing Hessians in the vector case</h2>
@@ -4986,9 +4986,13 @@ window.Quarto = {
 <span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co"># The neural network expects and returns a 2D array of probabilities for each digit for multiple images</span></span>
 <span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>probs <span class="op">=</span> neural_net_predict(optimized_params, blank_image[np.newaxis,:])[<span class="dv">0</span>]</span>
 <span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the output for a blank image</span></span>
-<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> digit, prob <span class="kw">in</span> <span class="bu">enumerate</span>(probs):</span>
-<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f&quot;</span><span class="sc">{</span>digit<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>prob<span class="sc">}</span><span class="ss">&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the probabilities for a blank image</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> plt.figure(figsize<span class="op">=</span>(<span class="dv">5</span>,<span class="dv">3</span>))</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>plt.bar(<span class="bu">range</span>(<span class="dv">10</span>), probs)</span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>plt.xticks(<span class="bu">range</span>(<span class="dv">10</span>))</span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">&quot;Digit probabilities&quot;</span>)</span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>plt.ylim([<span class="dv">0</span>, <span class="dv">1</span>])</span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="alert alert-block alert-info" style="background-color: rgb(195,223,220); border: 2px solid rgb(157,204,199); color: rgb(0,100,100);">
 <p><b>Exercise 1</b></p>
@@ -5157,7 +5161,12 @@ The function <code>f(x)</code> only takes a single argument so the values and ta
 <section id="mini-project" class="level2">
 <h2 class="anchored" data-anchor-id="mini-project">Mini-project</h2>
 <p>This year’s summer school includes a ‘mini-project’ session, which will be on Thursday afternoon.</p>
-<p>If you’re interested to make use of what you’ve learnt in this course then there will be a mini-project on investigating differentiable programming applied to the Lorenz ’96 model using JAX. For a sneak preview, take a look at the <code>miniproject</code> subdirectory of this repo.</p>
+<p>If you’re interested to make use of what you’ve learnt in this course then there will be a mini-project on investigating differentiable programming applied to toy models written in JAX. We provide code for:</p>
+<ol type="1">
+<li>Lorenz ’96 - an idealised model of a simplified atmosphere, demonstrating the core dynamical system.</li>
+<li>Shallow water equations - a depth-averaged approximation to the Navier-Stokes equations applied to an idealised tsunami simulation.</li>
+</ol>
+<p>For a sneak preview, take a look at the <code>miniproject</code> subdirectory of this repo.</p>
 </section>
 <section id="summary-and-outlook" class="level2">
 <h2 class="anchored" data-anchor-id="summary-and-outlook">Summary and outlook</h2>
