@@ -4203,7 +4203,11 @@ window.Quarto = {
   </li>  
   <li class="nav-item">
     <a class="nav-link active" href="../miniproject/lorenz96.html" aria-current="page"> 
-<span class="menu-text">Mini-project with Lorenz ’96 model</span></a>
+<span class="menu-text">Mini-project with Lorenz ’96</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../miniproject/shallow_water.html"> 
+<span class="menu-text">Mini-project with shallow water</span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -4220,8 +4224,7 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul class="collapse">
-  <li><a href="#mini-project-ideas" id="toc-mini-project-ideas" class="nav-link active" data-scroll-target="#mini-project-ideas">Mini-project ideas</a></li>
-  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link active" data-scroll-target="#references">References</a></li>
   </ul>
 </nav>
 </nav>
@@ -4270,21 +4273,21 @@ window.Quarto = {
 <li><span class="math inline">\(x_1=x_{N+1}\)</span></li>
 </ul>
 <p>We use the NumPy implementation found on the Wikipedia page [2] but make use of <code>jax.numpy</code> rather than standard NumPy.</p>
-<div id="e8847c4d-b333-4de9-b9b5-b880bff77f83" class="cell">
+<div id="1" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>matplotlib inline</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="36f48fea-6d54-4fe3-bcad-4916137f47b7" class="cell">
+<div id="2" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> jax.numpy <span class="im">as</span> jnp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Set model parameters</p>
-<div id="84674abf-fbd4-4a2d-b7de-5598f78f4fc3" class="cell">
+<div id="4" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>N <span class="op">=</span> <span class="dv">5</span>  <span class="co"># Number of variables</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>F <span class="op">=</span> <span class="dv">8</span>  <span class="co"># Forcing</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Define the RHS function</p>
-<div id="aa655bc5-7645-4a92-a94a-e2a061291b8c" class="cell">
+<div id="6" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> L96(x, t):</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Evaluate the RHS of the Lorenz &#39;96 model with constant forcing.</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -4295,23 +4298,23 @@ window.Quarto = {
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (jnp.roll(x, <span class="op">-</span><span class="dv">1</span>) <span class="op">-</span> jnp.roll(x, <span class="dv">2</span>)) <span class="op">*</span> jnp.roll(x, <span class="dv">1</span>) <span class="op">-</span> x <span class="op">+</span> F </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Define a perturbation to apply to the initial conditions.</p>
-<div id="76c49e28-612d-4f54-abd5-b324c716904d" class="cell">
+<div id="8" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>epsilon <span class="op">=</span> np.zeros(N)</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>epsilon[<span class="dv">0</span>] <span class="op">=</span> <span class="fl">0.1</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>epsilon <span class="op">=</span> jnp.asarray(epsilon)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Define the timestep and discretise the time window we seek to integrate over.</p>
-<div id="81b15a7f-2e16-4e2b-9106-20c37da76f99" class="cell">
+<div id="10" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>dt <span class="op">=</span> <span class="fl">0.01</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>end_time <span class="op">=</span> <span class="fl">30.0</span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>t <span class="op">=</span> jnp.arange(<span class="fl">0.0</span>, end_time, dt)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Define the initial condition to be in equilibrium with constant forcing.</p>
-<div id="25434c09-6e5c-41ec-ae6f-cae659336b9a" class="cell">
+<div id="12" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>x0 <span class="op">=</span> F <span class="op">*</span> jnp.ones(N)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Define a function for time integration using explicit Euler.</p>
-<div id="3760a547-6b64-4c18-8b69-c3a1dae13e13" class="cell">
+<div id="14" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> explicit_euler(epsilon):</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Integrate over time using explicit Euler, given a perturbation of the initial condition.</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -4326,7 +4329,7 @@ window.Quarto = {
 <span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> jnp.array(trajectory)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Plot the first three variables on 3D axes</p>
-<div id="a4a7576c-f8b8-4fcb-a25b-18908a9cf0f3" class="cell">
+<div id="16" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>trajectory <span class="op">=</span> explicit_euler(epsilon)</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> plt.figure()</span>
@@ -4337,13 +4340,16 @@ window.Quarto = {
 <span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>ax.set_zlabel(<span class="st">&quot;$x_3$&quot;</span>)</span>
 <span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<section id="mini-project-ideas" class="level2">
-<h2 class="anchored" data-anchor-id="mini-project-ideas">Mini-project ideas</h2>
+<div class="alert alert-block alert-info" style="background-color: rgb(195,223,220); border: 2px solid rgb(157,204,199); color: rgb(0,100,100);">
+<h2 class="anchored">
+Mini-project ideas
+</h2>
 <ol type="1">
 <li>Conduct a sensitivity analysis experiment to assess the sensitivity of the model to the perturbation <code>epsilon</code>. Currently, the perturbation only applies to the first component of the state variable. Consider perturbations of the other components, too.</li>
 <li>Implement the general <span class="math inline">\(\theta\)</span>-method from session 1 for this problem and perform a similar optimisation approach to determine the optimal value of <span class="math inline">\(\theta\)</span> for this problem. Note that the implementation of the <span class="math inline">\(\theta\)</span>-method will be more involved because the ODE is nonlinear.</li>
 </ol>
-</section>
+
+</div>
 <section id="references" class="level2">
 <h2 class="anchored" data-anchor-id="references">References</h2>
 <p>[1] Lorenz, Edward (1996). “Predictability – A problem partly solved” (PDF). Seminar on Predictability, Vol. I, ECMWF. https://www.ecmwf.int/sites/default/files/elibrary/1995/10829-predictability-problem-partly-solved.pdf</p>
