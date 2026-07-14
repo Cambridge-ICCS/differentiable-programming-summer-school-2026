@@ -25,5 +25,6 @@ Main course notebooks:
 
 Mini-project notebooks:
 
+- 🔗 **[MNIST](miniproject/mnist.html)**: Mini-project with a neural network trained on the MNIST dataset
 - 🔗 **[Lorenz '96](miniproject/lorenz96.html)**: Mini-project with the Lorenz '96 model
 - 🔗 **[Shallow water](miniproject/shallow_water.html)**: Mini-project with the linear shallow water equations
