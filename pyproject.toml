@@ -19,6 +19,7 @@ dependencies = [
     "mpltools>=0.2.0",
     "numpy>=2.3.0",
     "optax",
+    "tqdm",
 ]
 
 [project.optional-dependencies]
