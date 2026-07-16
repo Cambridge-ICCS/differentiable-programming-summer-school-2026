@@ -4202,6 +4202,10 @@ window.Quarto = {
 <span class="menu-text">JAX</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../miniproject/mnist.html"> 
+<span class="menu-text">Mini-project with MNIST</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../miniproject/lorenz96.html"> 
 <span class="menu-text">Mini-project with Lorenz ’96</span></a>
   </li>  
@@ -4329,51 +4333,56 @@ window.Quarto = {
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;dx = </span><span class="sc">{</span>dx<span class="sc">:.4f}</span><span class="ss">&quot;</span>)</span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;dt = </span><span class="sc">{</span>dt<span class="sc">:.4f}</span><span class="ss">&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Define the initial conditions as follows to correspond to the tsunami modelling problem in [1]. We apply a small perturbation to the free surface elevation to see how it propagates across the domain.</p>
+<p>Define the initial conditions as follows to correspond to the tsunami modelling problem in [1]. We assume zero horizontal velocity and apply a small perturbation to the free surface elevation to see how it propagates across the domain. Note that we only allow the elevation to be non-zero within <span class="math inline">\(25\,\mathrm{km}\)</span> of <span class="math inline">\(x=125\,\mathrm{km}\)</span>. We will return to this later.</p>
 <div id="10" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>u0 <span class="op">=</span> jnp.zeros_like(x)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>eta0 <span class="op">=</span> jnp.maximum(<span class="fl">0.4</span> <span class="op">-</span> ((x <span class="op">-</span> <span class="fl">125e3</span>) <span class="op">/</span> <span class="fl">25e3</span>) <span class="op">**</span> <span class="dv">2</span>, <span class="fl">0.0</span>)</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>w0 <span class="op">=</span> jnp.vstack((u0, eta0)).transpose().flatten()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>u0 <span class="op">=</span> jnp.zeros_like(x)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="11" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>source_indices <span class="op">=</span> jnp.where(((x <span class="op">-</span> <span class="fl">125e3</span>) <span class="op">/</span> <span class="fl">25e3</span>) <span class="op">**</span><span class="dv">2</span> <span class="op">&lt;</span> <span class="fl">1.0</span>)[<span class="dv">0</span>]</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>sr <span class="op">=</span> (source_indices[<span class="dv">0</span>], source_indices[<span class="op">-</span><span class="dv">1</span>] <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>source <span class="op">=</span> jnp.maximum(<span class="fl">0.4</span> <span class="op">-</span> ((x[sr[<span class="dv">0</span>]:sr[<span class="dv">1</span>]] <span class="op">-</span> <span class="fl">125e3</span>) <span class="op">/</span> <span class="fl">25e3</span>) <span class="op">**</span> <span class="dv">2</span>, <span class="fl">0.0</span>)  <span class="co"># Initial guess</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>eta0 <span class="op">=</span> jnp.concatenate((jnp.zeros_like(x[:sr[<span class="dv">0</span>]]), source, jnp.zeros_like(x[sr[<span class="dv">1</span>]:])))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Consider a constant bathymetry (water depth at rest) of <span class="math inline">\(4\,\mathrm{km}\)</span> and the standard gravitational acceleration constant. Note that our implementation supports a spatially varying bathymetry. We also define <code>g</code> using JAX syntax so that we can differentiate with respect to it.</p>
-<div id="12" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> jnp.ones(nx) <span class="op">*</span> <span class="fl">4000.0</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> jnp.array([<span class="fl">9.81</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
 <div id="13" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_solution(sol, axes<span class="op">=</span><span class="va">None</span>, both<span class="op">=</span><span class="va">False</span>):</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Plot the solution field.</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg sol: the solution array corresponding to both velocity and elevation at a time level</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">    :kwarg axes: optional matplotlib axes object to plot on</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co">    :kwarg both: logical flag for plotting both solution fields when True or just elevation when False</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> axes <span class="kw">is</span> <span class="va">None</span>:</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        fig, axes <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">2</span>))</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> both:</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        axes.plot(x <span class="op">/</span> <span class="fl">10e3</span>, sol[<span class="dv">0</span>::<span class="dv">2</span>], label<span class="op">=</span><span class="vs">r&quot;Velocity, </span><span class="dv">$</span><span class="vs">u</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    axes.plot(x <span class="op">/</span> <span class="fl">10e3</span>, sol[<span class="dv">1</span>::<span class="dv">2</span>], label<span class="op">=</span><span class="vs">r&quot;Elevation, </span><span class="dv">$</span><span class="er">\</span><span class="vs">eta</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    axes.set_xlabel(<span class="vs">r&quot;</span><span class="dv">$</span><span class="vs">x</span><span class="dv">$</span><span class="vs"> </span><span class="pp">[km]</span><span class="vs">&quot;</span>)</span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> both:</span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>        axes.legend()</span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>        axes.set_ylabel(<span class="st">&quot;Magnitude&quot;</span>)</span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>        axes.set_ylabel(<span class="vs">r&quot;Elevation, </span><span class="dv">$</span><span class="er">\</span><span class="vs">eta</span><span class="dv">$</span><span class="vs"> </span><span class="pp">[m]</span><span class="vs">&quot;</span>)</span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>        axes.set_ylim([<span class="op">-</span><span class="fl">0.4</span>, <span class="fl">0.4</span>])</span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    axes.set_xlim([<span class="dv">0</span>, <span class="dv">40</span>])</span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>    axes.grid()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> jnp.ones(nx) <span class="op">*</span> <span class="fl">4000.0</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> jnp.array([<span class="fl">9.81</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div id="14" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(ncols<span class="op">=</span><span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">2</span>))</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>plot_solution(w0, axes<span class="op">=</span>axes[<span class="dv">0</span>], both<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">&quot;Initial conditions&quot;</span>)</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="st">&quot;Bathymetry&quot;</span>)</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].invert_yaxis()  <span class="co"># Flip the y-axis for the bathymetry plot</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].plot(x <span class="op">/</span> <span class="fl">10e3</span>, b)</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlabel(<span class="vs">r&quot;</span><span class="dv">$</span><span class="vs">x</span><span class="dv">$</span><span class="vs"> </span><span class="pp">[m]</span><span class="vs">&quot;</span>)</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="vs">r&quot;Bathymetry, </span><span class="dv">$</span><span class="vs">b</span><span class="dv">$</span><span class="vs"> </span><span class="pp">[km]</span><span class="vs">&quot;</span>)</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlim([<span class="dv">0</span>, <span class="dv">40</span>])</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].grid()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_solution(sol, axes<span class="op">=</span><span class="va">None</span>, both<span class="op">=</span><span class="va">False</span>):</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Plot the solution field.</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg sol: the solution array corresponding to both velocity and elevation at a time level</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co">    :kwarg axes: optional matplotlib axes object to plot on</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co">    :kwarg both: logical flag for plotting both solution fields when True or just elevation when False</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> axes <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        fig, axes <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">2</span>))</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> both:</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>        axes.plot(x <span class="op">/</span> <span class="fl">10e3</span>, sol[<span class="dv">0</span>::<span class="dv">2</span>], label<span class="op">=</span><span class="vs">r&quot;Velocity, </span><span class="dv">$</span><span class="vs">u</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    axes.plot(x <span class="op">/</span> <span class="fl">10e3</span>, sol[<span class="dv">1</span>::<span class="dv">2</span>], label<span class="op">=</span><span class="vs">r&quot;Elevation, </span><span class="dv">$</span><span class="er">\</span><span class="vs">eta</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    axes.set_xlabel(<span class="vs">r&quot;</span><span class="dv">$</span><span class="vs">x</span><span class="dv">$</span><span class="vs"> </span><span class="pp">[km]</span><span class="vs">&quot;</span>)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> both:</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>        axes.legend()</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>        axes.set_ylabel(<span class="st">&quot;Magnitude&quot;</span>)</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>        axes.set_ylabel(<span class="vs">r&quot;Elevation, </span><span class="dv">$</span><span class="er">\</span><span class="vs">eta</span><span class="dv">$</span><span class="vs"> </span><span class="pp">[m]</span><span class="vs">&quot;</span>)</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>        axes.set_ylim([<span class="op">-</span><span class="fl">0.4</span>, <span class="fl">0.4</span>])</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    axes.set_xlim([<span class="dv">0</span>, <span class="dv">40</span>])</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>    axes.grid()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="15" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(ncols<span class="op">=</span><span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">2</span>))</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>w0 <span class="op">=</span> jnp.vstack((u0, eta0)).transpose().flatten()</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>plot_solution(w0, axes<span class="op">=</span>axes[<span class="dv">0</span>], both<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">&quot;Initial conditions&quot;</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="st">&quot;Bathymetry&quot;</span>)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].invert_yaxis()  <span class="co"># Flip the y-axis for the bathymetry plot</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].plot(x <span class="op">/</span> <span class="fl">10e3</span>, b)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlabel(<span class="vs">r&quot;</span><span class="dv">$</span><span class="vs">x</span><span class="dv">$</span><span class="vs"> </span><span class="pp">[m]</span><span class="vs">&quot;</span>)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="vs">r&quot;Bathymetry, </span><span class="dv">$</span><span class="vs">b</span><span class="dv">$</span><span class="vs"> </span><span class="pp">[km]</span><span class="vs">&quot;</span>)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlim([<span class="dv">0</span>, <span class="dv">40</span>])</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].grid()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Applying implicit Euler for timestepping gives the approximation <span class="math display">\[
 \frac{\mathbf{w}^{k+1}-\mathbf{w}^k}{\Delta t}
@@ -4394,9 +4403,9 @@ window.Quarto = {
 \mathbf{w}^{k+1}_i+c\left(\underline{\mathbf{A}}(\mathbf{w}^{k+1}_{i+1}-\mathbf{w}^{k+1}_{i-1})+(\underline{\mathbf{B}}_{i+1}-\underline{\mathbf{B}}_{i-1})\mathbf{w}^{k+1}_i\right)
 \approx\mathbf{w}^k_i
 \]</span></p>
-<div id="19" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> dt <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> dx)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;c = </span><span class="sc">{</span>c<span class="sc">:.4f}</span><span class="ss">&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="20" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> dt <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> dx)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;c = </span><span class="sc">{</span>c<span class="sc">:.4f}</span><span class="ss">&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>This gives rise to the block matrix system <span class="math display">\[
 \begin{bmatrix}
@@ -4436,90 +4445,129 @@ c\underline{\mathbf{A}} &amp; &amp; &amp; -c\underline{\mathbf{A}} &amp; \underl
 (\underline{\mathbf{L}}+\underline{\mathbf{D}}+\underline{\mathbf{U}})\mathbf{w}^{k+1}
 \approx\mathbf{w}^k.
 \]</span> We can define these matrices as follows:</p>
-<div id="22" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>B_diff <span class="op">=</span> jnp.roll(b, <span class="op">-</span><span class="dv">1</span>) <span class="op">-</span> jnp.roll(b, <span class="dv">1</span>)</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>diagonal <span class="op">=</span> jnp.eye(<span class="dv">2</span> <span class="op">*</span> nx) <span class="op">\</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> c <span class="op">*</span> jnp.diag(jnp.concatenate((B_diff[<span class="dv">0</span>:<span class="dv">1</span>], jnp.vstack((jnp.zeros(nx<span class="op">-</span><span class="dv">1</span>), B_diff[<span class="dv">1</span>:])).transpose().flatten())), k<span class="op">=-</span><span class="dv">1</span>)</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>upper <span class="op">=</span> c <span class="op">*</span> (jnp.diag(jnp.concatenate((jnp.vstack((jnp.zeros(nx<span class="op">-</span><span class="dv">1</span>), b[:<span class="op">-</span><span class="dv">1</span>])).transpose().flatten(), jnp.zeros(<span class="dv">1</span>))), k<span class="op">=</span><span class="dv">1</span>) <span class="op">\</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> jnp.diag(jnp.concatenate((jnp.vstack((g <span class="op">*</span> jnp.ones(nx<span class="op">-</span><span class="dv">2</span>), jnp.zeros(nx<span class="op">-</span><span class="dv">2</span>))).transpose().flatten(), g <span class="op">*</span> jnp.ones(<span class="dv">1</span>))), k<span class="op">=</span><span class="dv">3</span>) <span class="op">\</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> jnp.diag(jnp.concatenate((jnp.zeros(<span class="dv">1</span>), g <span class="op">*</span> jnp.ones(<span class="dv">1</span>), jnp.zeros(<span class="dv">1</span>))), k<span class="op">=-</span>(<span class="dv">2</span><span class="op">*</span>nx<span class="op">-</span><span class="dv">3</span>)) <span class="op">\</span></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> jnp.diag(b[<span class="op">-</span><span class="dv">1</span>:], k<span class="op">=-</span>(<span class="dv">2</span><span class="op">*</span>nx<span class="op">-</span><span class="dv">1</span>)))</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>lower <span class="op">=</span> <span class="op">-</span>c <span class="op">*</span> (jnp.diag(jnp.concatenate((jnp.vstack((b[<span class="dv">2</span>:], jnp.zeros(nx<span class="op">-</span><span class="dv">2</span>))).transpose().flatten(), b[<span class="dv">1</span>:<span class="dv">2</span>])), k<span class="op">=-</span><span class="dv">3</span>) <span class="op">\</span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> jnp.diag(jnp.concatenate((jnp.zeros(<span class="dv">1</span>), jnp.vstack((g <span class="op">*</span> jnp.ones(nx<span class="op">-</span><span class="dv">1</span>), jnp.zeros(nx<span class="op">-</span><span class="dv">1</span>))).transpose().flatten())), k<span class="op">=-</span><span class="dv">1</span>) <span class="op">\</span></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> jnp.diag(jnp.concatenate((jnp.zeros(<span class="dv">1</span>), b[<span class="dv">0</span>:<span class="dv">1</span>], jnp.zeros(<span class="dv">1</span>))), k<span class="op">=</span><span class="dv">2</span><span class="op">*</span>nx<span class="op">-</span><span class="dv">3</span>) <span class="op">\</span></span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> jnp.diag(g <span class="op">*</span> jnp.ones(<span class="dv">1</span>), k<span class="op">=</span><span class="dv">2</span><span class="op">*</span>nx<span class="op">-</span><span class="dv">1</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
 <div id="23" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>lhs_matrix <span class="op">=</span> lower <span class="op">+</span> diagonal <span class="op">+</span> upper</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>B_diff <span class="op">=</span> jnp.roll(b, <span class="op">-</span><span class="dv">1</span>) <span class="op">-</span> jnp.roll(b, <span class="dv">1</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>diagonal <span class="op">=</span> jnp.eye(<span class="dv">2</span> <span class="op">*</span> nx) <span class="op">\</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> c <span class="op">*</span> jnp.diag(jnp.concatenate((B_diff[<span class="dv">0</span>:<span class="dv">1</span>], jnp.vstack((jnp.zeros(nx<span class="op">-</span><span class="dv">1</span>), B_diff[<span class="dv">1</span>:])).transpose().flatten())), k<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>upper <span class="op">=</span> c <span class="op">*</span> (jnp.diag(jnp.concatenate((jnp.vstack((jnp.zeros(nx<span class="op">-</span><span class="dv">1</span>), b[:<span class="op">-</span><span class="dv">1</span>])).transpose().flatten(), jnp.zeros(<span class="dv">1</span>))), k<span class="op">=</span><span class="dv">1</span>) <span class="op">\</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> jnp.diag(jnp.concatenate((jnp.vstack((g <span class="op">*</span> jnp.ones(nx<span class="op">-</span><span class="dv">2</span>), jnp.zeros(nx<span class="op">-</span><span class="dv">2</span>))).transpose().flatten(), g <span class="op">*</span> jnp.ones(<span class="dv">1</span>))), k<span class="op">=</span><span class="dv">3</span>) <span class="op">\</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> jnp.diag(jnp.concatenate((jnp.zeros(<span class="dv">1</span>), g <span class="op">*</span> jnp.ones(<span class="dv">1</span>), jnp.zeros(<span class="dv">1</span>))), k<span class="op">=-</span>(<span class="dv">2</span><span class="op">*</span>nx<span class="op">-</span><span class="dv">3</span>)) <span class="op">\</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> jnp.diag(b[<span class="op">-</span><span class="dv">1</span>:], k<span class="op">=-</span>(<span class="dv">2</span><span class="op">*</span>nx<span class="op">-</span><span class="dv">1</span>)))</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>lower <span class="op">=</span> <span class="op">-</span>c <span class="op">*</span> (jnp.diag(jnp.concatenate((jnp.vstack((b[<span class="dv">2</span>:], jnp.zeros(nx<span class="op">-</span><span class="dv">2</span>))).transpose().flatten(), b[<span class="dv">1</span>:<span class="dv">2</span>])), k<span class="op">=-</span><span class="dv">3</span>) <span class="op">\</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> jnp.diag(jnp.concatenate((jnp.zeros(<span class="dv">1</span>), jnp.vstack((g <span class="op">*</span> jnp.ones(nx<span class="op">-</span><span class="dv">1</span>), jnp.zeros(nx<span class="op">-</span><span class="dv">1</span>))).transpose().flatten())), k<span class="op">=-</span><span class="dv">1</span>) <span class="op">\</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> jnp.diag(jnp.concatenate((jnp.zeros(<span class="dv">1</span>), b[<span class="dv">0</span>:<span class="dv">1</span>], jnp.zeros(<span class="dv">1</span>))), k<span class="op">=</span><span class="dv">2</span><span class="op">*</span>nx<span class="op">-</span><span class="dv">3</span>) <span class="op">\</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> jnp.diag(g <span class="op">*</span> jnp.ones(<span class="dv">1</span>), k<span class="op">=</span><span class="dv">2</span><span class="op">*</span>nx<span class="op">-</span><span class="dv">1</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="24" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>lhs_matrix <span class="op">=</span> lower <span class="op">+</span> diagonal <span class="op">+</span> upper</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We can plot the sparsity pattern of the matrix as follows:</p>
-<div id="25" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>plt.spy(lhs_matrix)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="26" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>plt.spy(lhs_matrix)<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Solve the PDE by integrating in time and solving the linear system at each timestep. We import the <code>tqdm</code> utility to display a progress bar.</p>
-<div id="27" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tqdm <span class="im">import</span> tqdm</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
 <div id="28" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pde_solve(w_init):</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Solve the PDE.</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg w_init: initial condition</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: solution trajectory</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Set initial condition</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    w <span class="op">=</span> w_init</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    trajectory <span class="op">=</span> [w]</span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Do the time integration</span></span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k, time <span class="kw">in</span> <span class="bu">enumerate</span>(tqdm(t)):</span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>        w <span class="op">=</span> jnp.linalg.solve(lhs_matrix, w)</span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>        trajectory.append(w)</span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> trajectory</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tqdm <span class="im">import</span> tqdm</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div id="29" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>trajectory <span class="op">=</span> pde_solve(w0)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pde_solve(source):</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Solve the PDE.</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg source: the initial elevation in the source region</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: solution trajectory</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Set initial condition</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    eta0 <span class="op">=</span> jnp.concatenate((jnp.zeros_like(x[:sr[<span class="dv">0</span>]]), source, jnp.zeros_like(x[sr[<span class="dv">1</span>]:])))</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    w <span class="op">=</span> jnp.vstack((u0, eta0)).transpose().flatten()</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    trajectory <span class="op">=</span> [w]</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Do the time integration</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k, time <span class="kw">in</span> <span class="bu">enumerate</span>(tqdm(t)):</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>        w <span class="op">=</span> jnp.linalg.solve(lhs_matrix, w)</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>        trajectory.append(w)</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> jnp.array(trajectory)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="30" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>trajectory <span class="op">=</span> pde_solve(source)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Plot the solution trajectory at a few key times.</p>
-<div id="31" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>snapshot_times <span class="op">=</span> [<span class="dv">525</span>, <span class="dv">1365</span>, <span class="dv">2772</span>, <span class="dv">3255</span>, <span class="dv">4200</span>]</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>idx <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(nrows<span class="op">=</span><span class="dv">5</span>, figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">12</span>))</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> time, sol <span class="kw">in</span> <span class="bu">zip</span>(t, trajectory):</span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> time <span class="op">&gt;=</span> snapshot_times[idx]:</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>        plt.text(<span class="fl">0.98</span>, <span class="fl">0.95</span>, <span class="ss">f&quot;t=</span><span class="sc">{</span>time<span class="sc">:.0f}</span><span class="ss">&quot;</span>, transform<span class="op">=</span>axes[idx].transAxes, fontsize<span class="op">=</span><span class="dv">12</span>, ha<span class="op">=</span><span class="st">&quot;right&quot;</span>, va<span class="op">=</span><span class="st">&quot;top&quot;</span>)</span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>        plot_solution(sol, axes<span class="op">=</span>axes[idx])</span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>        idx <span class="op">+=</span> <span class="dv">1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="32" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>snapshot_times <span class="op">=</span> [<span class="dv">525</span>, <span class="dv">1365</span>, <span class="dv">2772</span>, <span class="dv">3255</span>, <span class="dv">4200</span>]</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>idx <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(nrows<span class="op">=</span><span class="dv">5</span>, figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">12</span>))</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> time, sol <span class="kw">in</span> <span class="bu">zip</span>(t, trajectory):</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> time <span class="op">&gt;=</span> snapshot_times[idx]:</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>        plt.text(<span class="fl">0.98</span>, <span class="fl">0.95</span>, <span class="ss">f&quot;t=</span><span class="sc">{</span>time<span class="sc">:.0f}</span><span class="ss">&quot;</span>, transform<span class="op">=</span>axes[idx].transAxes, fontsize<span class="op">=</span><span class="dv">12</span>, ha<span class="op">=</span><span class="st">&quot;right&quot;</span>, va<span class="op">=</span><span class="st">&quot;top&quot;</span>)</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>        plot_solution(sol, axes<span class="op">=</span>axes[idx])</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>        idx <span class="op">+=</span> <span class="dv">1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Produce an animation, too.</p>
-<div id="33" class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">2</span>))</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>axes.axis([<span class="dv">0</span>, <span class="fl">40e3</span>, <span class="op">-</span><span class="fl">0.4</span>, <span class="fl">0.4</span>])</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>l, <span class="op">=</span> axes.plot([],[])</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>frame_rate <span class="op">=</span> <span class="dv">25</span></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> animate(i):</span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    axes.clear()</span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    plot_solution(trajectory[frame_rate <span class="op">*</span> i], axes<span class="op">=</span>axes)</span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>ani <span class="op">=</span> matplotlib.animation.FuncAnimation(fig, animate, frames<span class="op">=</span><span class="bu">len</span>(trajectory[::frame_rate]))</span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>plt.close()</span>
-<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>HTML(ani.to_jshtml())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="34" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">2</span>))</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>axes.axis([<span class="dv">0</span>, <span class="fl">40e3</span>, <span class="op">-</span><span class="fl">0.1</span>, eta0.<span class="bu">max</span>()])</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>l, <span class="op">=</span> axes.plot([],[])</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>frame_rate <span class="op">=</span> <span class="dv">25</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> animate(i):</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>    axes.clear()</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>    plot_solution(trajectory[frame_rate <span class="op">*</span> i], axes<span class="op">=</span>axes)</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>ani <span class="op">=</span> matplotlib.animation.FuncAnimation(fig, animate, frames<span class="op">=</span><span class="bu">len</span>(trajectory[::frame_rate]))</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>plt.close()</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>HTML(ani.to_jshtml())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>So we have a way to do a full simulation and save the entire trajectory.</p>
+<p>When it comes to real world data, we only usually have timeseries data at a sequence of points. The devices used to measure such timeseries data in ocean modelling are often referred to as <em>gauges</em>. Given indices representing the gauge locations, we can create a new function that produces timeseries data at those locations.</p>
+<div id="36" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> produce_timeseries(source, gauge_indices):</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Solve the PDE for a given initial elevation and produce timeseries at given indices.</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg source: the initial elevation in the source region</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="co">    :arg gauge_locations: list of gauge indices</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="co">    :return: list of timeseries at the gauges</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>    eta_timeseries <span class="op">=</span> pde_solve(source)[:, <span class="dv">1</span>::<span class="dv">2</span>]</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> eta_timeseries[:, gauge_indices]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="37" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>gauge_indices <span class="op">=</span> [<span class="dv">0</span>, <span class="dv">100</span>, <span class="dv">200</span>, <span class="dv">300</span>]</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>timeseries <span class="op">=</span> produce_timeseries(source, gauge_indices)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Let’s plot these against data from a different run with an unseen source.</p>
+<div id="39" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>gauge_data <span class="op">=</span> np.load(<span class="st">&quot;gauge_data.npy&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="40" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(nrows<span class="op">=</span><span class="dv">4</span>, figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">8</span>))</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>):</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    gauge_index <span class="op">=</span> gauge_indices[i]</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    plt.text(<span class="fl">0.5</span>, <span class="fl">0.95</span>, <span class="ss">f&quot;Gauge at x=</span><span class="sc">{</span>x[gauge_index]<span class="op">/</span><span class="fl">1e3</span><span class="sc">:.0f}</span><span class="ss">km&quot;</span>, transform<span class="op">=</span>axes[i].transAxes, fontsize<span class="op">=</span><span class="dv">12</span>, ha<span class="op">=</span><span class="st">&quot;center&quot;</span>, va<span class="op">=</span><span class="st">&quot;top&quot;</span>)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    axes[i].plot(timeseries[:, gauge_index], label<span class="op">=</span><span class="st">&quot;Simulated&quot;</span>)</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    axes[i].plot(gauge_data[:, i], label<span class="op">=</span><span class="st">&quot;Data&quot;</span>)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    axes[i].set_xlabel(<span class="vs">r&quot;Time, </span><span class="dv">$</span><span class="vs">t</span><span class="dv">$</span><span class="vs"> </span><span class="pp">[s]</span><span class="vs">&quot;</span>)</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    axes[i].set_ylabel(<span class="vs">r&quot;Elevation, </span><span class="dv">$</span><span class="er">\</span><span class="vs">eta</span><span class="dv">$</span><span class="vs"> </span><span class="pp">[m]</span><span class="vs">&quot;</span>)</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>    axes[i].legend(loc<span class="op">=</span><span class="st">&quot;upper right&quot;</span>)</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>    axes[i].grid()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="41" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> objective_function(source):</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    timeseries <span class="op">=</span> produce_timeseries(source, gauge_indices)</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> jnp.dot(timeseries <span class="op">-</span> gauge_data, timeseries <span class="op">-</span> gauge_data) <span class="op">**</span> <span class="dv">2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="alert alert-block alert-info" style="background-color: rgb(195,223,220); border: 2px solid rgb(157,204,199); color: rgb(0,100,100);">
 <h2 class="anchored">
 Mini-project ideas
 </h2>
 <ol type="1">
-<li>Use differentiable programming to compute sensitivities of the model with respect to the initial free surface elevation <code>eta0</code>. One way to do this is to reformulate the <code>pde_solve</code> function so that its argument is <code>eta0</code> rather than <code>w0</code>. Consider also sensitivities of the model with respect to the gravitational constant <code>g</code> and with respect to the bathymetry field <code>b</code>. Try out spatially varying bathymetry fields.</li>
-<li>Conduct a source inversion experiment where you seek to recover the initial free surface elevation <code>eta0</code> by optimising the fit of the free surface elevation solution at a set of points against timeseries. Run the model for a given initial condition and extract timeseries data at a set of points. Use these data to define an objective function. Then change the initial condition and see if you can recover your initial choice of <code>eta0</code>.</li>
+<li><p>Conduct a source inversion experiment where you seek to recover the source condition <code>source</code> that gave rise to the data saved to file. You will do this by optimising the fit of the free surface elevation solution at a set of points against timeseries. The fit is encoded in <code>objective_function</code> so you should be able to invert this function for <code>source</code> using the optimisers covered in the course.</p></li>
+<li><p>Use differentiable programming to compute sensitivities of the model with respect to the source condition <code>source</code>. Consider also sensitivities of the model with respect to the gravitational constant <code>g</code> and with respect to the bathymetry field <code>b</code>. Try out spatially varying bathymetry fields.</p></li>
 </ol>
 
 </div>
 <div class="alert alert-block alert-warning" style="background-color: rgb(236,176,146); border: 2px solid rgb(213,104,79); color: rgb(64,64,64);">
-<p><b>Note on idea 1:</b> The numerical scheme is unlikely to be able to cope with shocks due to sharp gradients in bathymetry so you should avoid ‘shelf break’ step functions. You should also ensure the bathymetry field is periodic.</p>
-<p><b>Note on idea 2:</b> This is an ill-posed problem! You will likely need to regularise the problem by restricting <code>eta0</code> to only be non-zero in a specific region and/or include a regularisation term in your objective function.</p>
+<p><b>Note on idea 1:</b> This is an ill-posed problem! We have added some regularisation to the problem by restricting <code>source</code> (and hence <code>eta0</code>) to only be non-zero in a specific region but you may need to include a regularisation term in your objective function.</p>
+<p><b>Note on idea 2:</b> The numerical scheme is unlikely to be able to cope with shocks due to sharp gradients in bathymetry so you should avoid ‘shelf break’ step functions. You should also ensure the bathymetry field is periodic.</p>
 </div>
 <section id="references" class="level2">
 <h2 class="anchored" data-anchor-id="references">References</h2>
