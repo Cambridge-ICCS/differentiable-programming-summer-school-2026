@@ -10,5 +10,6 @@ mini-project.
 Toy models are available in the following Jupyter notebooks, which include some
 initial code and ideas for investigation:
 
+* [MNIST](mnist.ipynb)
 * [Lorenz '96](lorenz96.ipynb)
 * [Linear shallow water](shallow_water.ipynb)

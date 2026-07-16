@@ -5,6 +5,7 @@ project:
     - "index.qmd"
     - "session1.ipynb"
     - "session2.ipynb"
+    - "miniproject/mnist.ipynb"
     - "miniproject/lorenz96.ipynb"
     - "miniproject/shallow_water.ipynb"
 
@@ -18,6 +19,8 @@ website:
         text: "Autograd"
       - href: session2.ipynb
         text: "JAX"
+      - href: miniproject/mnist.ipynb
+        text: "Mini-project with MNIST"
       - href: miniproject/lorenz96.ipynb
         text: "Mini-project with Lorenz '96"
       - href: miniproject/shallow_water.ipynb
